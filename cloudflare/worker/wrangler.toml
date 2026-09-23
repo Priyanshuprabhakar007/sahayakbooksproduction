@@ -1,0 +1,9 @@
+name = "sahayakbooks-api"
+main = "src/index.ts"
+compatibility_date = "2026-09-23"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sahayakbooks-production"
+database_id = "13ea1d62-ab1e-4091-b6da-d80d70a45fc0"
+migrations_dir = "../migrations"

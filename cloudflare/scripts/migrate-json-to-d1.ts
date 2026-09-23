@@ -3,11 +3,14 @@ import path from 'path';
 
 interface MigrationReport {
   usersDetected: number;
+  usersRequiringPasswordReset: number;
   authorsDetected: number;
   categoriesDetected: number;
   booksDetected: number;
   variantsDetected: number;
   mediaDetected: number;
+  r2MediaDetected: number;
+  base64MediaDetected: number;
   bookImagesGenerated: number;
   blogsDetected: number;
   reviewsDetected: number;
@@ -22,7 +25,6 @@ interface MigrationReport {
   warnings: string[];
   duplicates: string[];
   missingReferences: string[];
-  base64MediaWarnings: string[];
 }
 
 function escapeSql(val: any): string {
@@ -54,11 +56,14 @@ export function runMigrationAndSeed(dryRun = false): MigrationReport {
 
   const report: MigrationReport = {
     usersDetected: (data.allUsers || []).length,
+    usersRequiringPasswordReset: 0,
     authorsDetected: (data.authors || []).length,
     categoriesDetected: (data.categories || []).length,
     booksDetected: (data.books || []).length,
     variantsDetected: 0,
     mediaDetected: (data.mediaItems || []).length,
+    r2MediaDetected: 0,
+    base64MediaDetected: 0,
     bookImagesGenerated: 0,
     blogsDetected: (data.blogs || []).length,
     reviewsDetected: (data.reviews || []).length,
@@ -73,13 +78,11 @@ export function runMigrationAndSeed(dryRun = false): MigrationReport {
     warnings: [],
     duplicates: [],
     missingReferences: [],
-    base64MediaWarnings: [],
   };
 
   const authorIds = new Set((data.authors || []).map((a: any) => a.id));
   const bookIds = new Set((data.books || []).map((b: any) => b.id));
   const userIds = new Set((data.allUsers || []).map((u: any) => u.id));
-  const mediaIds = new Set((data.mediaItems || []).map((m: any) => m.id));
 
   // Set checks for duplicates
   const seenEmails = new Set<string>();
@@ -88,10 +91,11 @@ export function runMigrationAndSeed(dryRun = false): MigrationReport {
   const seenIsbns = new Set<string>();
   const seenMediaKeys = new Set<string>();
 
-  // Validate users
+  // Validate users & password security
   for (const u of data.allUsers || []) {
-    if (!u.passwordHash) {
-      report.warnings.push(`User ${u.email || u.id} has no valid password_hash.`);
+    if (!u.passwordHash || typeof u.passwordHash !== 'string' || u.passwordHash.trim() === '') {
+      report.usersRequiringPasswordReset++;
+      report.warnings.push(`User ${u.email || u.id} has no valid password_hash and requires a password reset.`);
     }
     if (seenEmails.has(u.email)) {
       report.duplicates.push(`Duplicate user email found: ${u.email}`);
@@ -178,9 +182,10 @@ export function runMigrationAndSeed(dryRun = false): MigrationReport {
   for (const m of data.mediaItems || []) {
     const url = m.url || m.publicUrl || '';
     if (url.includes('r2.dev') || url.includes('r2.cloudflarestorage.com')) {
-      // R2 media detected
+      report.r2MediaDetected++;
     } else if (url.startsWith('data:image')) {
-      report.base64MediaWarnings.push(`Media item ${m.id} (${m.name}) is Base64 encoded — REQUIRES_R2_UPLOAD.`);
+      report.base64MediaDetected++;
+      report.warnings.push(`Media item ${m.id} (${m.name}) is Base64 encoded — REQUIRES_R2_UPLOAD.`);
     } else if (url.includes('unsplash.com') || url.startsWith('http')) {
       report.warnings.push(`Media item ${m.id} uses external URL (e.g. Unsplash): ${url}`);
     }
@@ -224,24 +229,27 @@ export function runMigrationAndSeed(dryRun = false): MigrationReport {
   const sqlLines: Array<string> = [];
   sqlLines.push('-- Sahayak Books Production D1 Seed Script');
   sqlLines.push(`-- Generated at: ${new Date().toISOString()}`);
+  sqlLines.push('-- NOTE: Imported legacy users without valid password hashes require password reset (MIGRATION_RESET_REQUIRED)');
   sqlLines.push('BEGIN TRANSACTION;');
   sqlLines.push('');
 
   // 1. Users
   sqlLines.push('-- --- USERS ---');
   for (const u of data.allUsers || []) {
+    const pwdHash = u.passwordHash && typeof u.passwordHash === 'string' && u.passwordHash.trim() !== ''
+      ? u.passwordHash
+      : 'MIGRATION_RESET_REQUIRED';
+
     sqlLines.push(
       `INSERT OR REPLACE INTO users (id, name, email, phone, password_hash, role, status, email_verified, verify_token, reset_token, reset_token_expires, avatar, city, country, addresses, wishlist, saved_book_ids, saved_article_ids, order_ids, saved_ebooks, created_at, updated_at, last_login_at) VALUES (${escapeSql(
         u.id
-      )}, ${escapeSql(u.name)}, ${escapeSql(u.email)}, ${escapeSql(u.phone)}, ${escapeSql(
-        u.passwordHash || 'pbkdf2$100000$mock$mock'
-      )}, ${escapeSql(u.role || 'CUSTOMER')}, ${escapeSql(u.status || 'ACTIVE')}, ${
-        u.emailVerified ? 1 : 0
-      }, ${escapeSql(u.verifyToken)}, ${escapeSql(u.resetToken)}, ${escapeSql(
-        u.resetTokenExpires
-      )}, ${escapeSql(u.avatar)}, ${escapeSql(u.city)}, ${escapeSql(u.country)}, ${escapeSql(
-        u.addresses
-      )}, ${escapeSql(u.wishlist)}, ${escapeSql(u.savedBookIds)}, ${escapeSql(
+      )}, ${escapeSql(u.name)}, ${escapeSql(u.email)}, ${escapeSql(u.phone)}, ${escapeSql(pwdHash)}, ${escapeSql(
+        u.role || 'CUSTOMER'
+      )}, ${escapeSql(u.status || 'ACTIVE')}, ${u.emailVerified ? 1 : 0}, ${escapeSql(u.verifyToken)}, ${escapeSql(
+        u.resetToken
+      )}, ${escapeSql(u.resetTokenExpires)}, ${escapeSql(u.avatar)}, ${escapeSql(u.city)}, ${escapeSql(
+        u.country
+      )}, ${escapeSql(u.addresses)}, ${escapeSql(u.wishlist)}, ${escapeSql(u.savedBookIds)}, ${escapeSql(
         u.savedArticleIds
       )}, ${escapeSql(u.orderIds)}, ${escapeSql(u.savedEbooks)}, ${escapeSql(
         u.createdAt || u.registrationDate
@@ -290,9 +298,6 @@ export function runMigrationAndSeed(dryRun = false): MigrationReport {
   sqlLines.push('-- --- MEDIA ---');
   for (const m of data.mediaItems || []) {
     const pubUrl = m.url || m.publicUrl || '';
-    if (pubUrl.startsWith('data:image')) {
-      // skip or store placeholder flag
-    }
     sqlLines.push(
       `INSERT OR REPLACE INTO media (id, filename, original_filename, r2_key, public_url, mime_type, file_size_bytes, width, height, category, folder, alt_text, caption, storage_provider, uploaded_by, created_at, updated_at) VALUES (${escapeSql(
         m.id
@@ -437,7 +442,7 @@ export function runMigrationAndSeed(dryRun = false): MigrationReport {
     );
   }
 
-  // 9. Orders & Order Items
+  // 9. Orders & Order Items (Deterministic IDs: oitm-${order.id}-${index})
   sqlLines.push('');
   sqlLines.push('-- --- ORDERS ---');
   for (const o of data.orders || []) {
@@ -458,8 +463,8 @@ export function runMigrationAndSeed(dryRun = false): MigrationReport {
     );
 
     if (Array.isArray(o.items)) {
-      for (const item of o.items) {
-        const itemId = `oitm-${o.id}-${item.bookId || Math.random().toString(36).substring(7)}`;
+      o.items.forEach((item: any, index: number) => {
+        const itemId = `oitm-${o.id}-${index}`;
         sqlLines.push(
           `INSERT OR REPLACE INTO order_items (id, order_id, book_id, title, author_name, cover_image, format, quantity, unit_price, total_price, created_at) VALUES (${escapeSql(
             itemId
@@ -469,7 +474,7 @@ export function runMigrationAndSeed(dryRun = false): MigrationReport {
             item.price
           )}, ${escapeSql(item.price * item.quantity)}, ${escapeSql(o.date)});`
         );
-      }
+      });
     }
   }
 
