@@ -555,11 +555,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           if (data.success && data.user) {
             setCurrentUser(data.user);
             localStorage.setItem('sahayak_current_user', JSON.stringify(data.user));
+            if (
+              data.user.role === 'SUPER_ADMIN' ||
+              data.user.role === 'ADMIN' ||
+              data.user.role === 'EDITOR'
+            ) {
+              setAdminUser(data.user);
+              localStorage.setItem('sahayak_admin_user', JSON.stringify(data.user));
+            }
           } else {
             setSessionToken(null);
             setCurrentUser(null);
+            setAdminUser(null);
             localStorage.removeItem('sahayak_session_token');
             localStorage.removeItem('sahayak_current_user');
+            localStorage.removeItem('sahayak_admin_user');
           }
         })
         .catch(() => {
@@ -569,7 +579,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [sessionToken]);
 
   // Dedicated Admin / Staff Session
-  const [adminUser, setAdminUser] = useState<UserProfile | null>(null);
+  const [adminUser, setAdminUser] = useState<UserProfile | null>(() => {
+    const saved = localStorage.getItem('sahayak_admin_user');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  });
 
   const hasAdminAccess = !!adminUser && (adminUser.role === 'SUPER_ADMIN' || adminUser.role === 'ADMIN' || adminUser.role === 'EDITOR');
   const isSuperAdmin = !!adminUser && (adminUser.role === 'SUPER_ADMIN' || adminUser.role === 'ADMIN');
@@ -1952,15 +1972,41 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Media Management
-  const addMediaItem = (itemData: Omit<MediaItem, 'id' | 'date'>): MediaItem => {
+  const addMediaItem = (itemData: Partial<MediaItem> & Omit<MediaItem, 'date'>): MediaItem => {
     const newItem: MediaItem = {
-      ...itemData,
-      id: `med-${Date.now()}`,
+      id: itemData.id || `med-${Date.now()}`,
+      name: itemData.name || 'Untitled Media',
+      url: itemData.url || itemData.publicUrl || '',
+      publicUrl: itemData.publicUrl || itemData.url,
+      objectKey: itemData.objectKey,
+      folder: itemData.folder || 'Books',
+      category: itemData.category,
+      mimeType: itemData.mimeType,
+      size: itemData.size,
+      fileSize: itemData.fileSize,
+      fileSizeBytes: itemData.fileSizeBytes,
+      dimensions: itemData.dimensions,
+      width: itemData.width,
+      height: itemData.height,
+      altText: itemData.altText,
+      caption: itemData.caption,
+      storageProvider: itemData.storageProvider || 'cloudflare-r2',
+      uploadedBy: itemData.uploadedBy,
+      createdAt: itemData.createdAt || new Date().toISOString(),
+      updatedAt: itemData.updatedAt || new Date().toISOString(),
       date: new Date().toISOString().split('T')[0],
+      ...itemData,
     };
-    setMediaItems((prev) => [newItem, ...prev]);
+    setMediaItems((prev) => {
+      if (prev.some(m => m.id === newItem.id)) {
+        return prev.map(m => m.id === newItem.id ? newItem : m);
+      }
+      return [newItem, ...prev];
+    });
     addAuditLog('Media Uploaded', newItem.name, `Folder: ${newItem.folder}`);
-    persistToServer('/api/media', 'POST', newItem);
+    if (!itemData.id || !itemData.objectKey) {
+      persistToServer('/api/media', 'POST', newItem);
+    }
     return newItem;
   };
 

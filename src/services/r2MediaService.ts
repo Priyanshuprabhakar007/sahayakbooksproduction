@@ -30,7 +30,7 @@ export async function uploadFileToR2(
     folder = options.categoryFolder || 'books',
     altText,
     caption,
-    uploadedBy = 'admin',
+    uploadedBy,
     onProgress,
   } = options;
 
@@ -43,7 +43,10 @@ export async function uploadFileToR2(
     const formData = new FormData();
     formData.append('file', file);
     formData.append('folder', folder.toLowerCase());
-    
+    if (altText) formData.append('altText', altText);
+    if (caption) formData.append('caption', caption);
+    if (uploadedBy) formData.append('uploadedBy', uploadedBy);
+
     const response = await authenticatedFetch('/api/media/upload', {
       method: 'POST',
       body: formData,
@@ -51,6 +54,9 @@ export async function uploadFileToR2(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      if (response.status === 401) {
+        throw new Error('Session expired. Please sign in again as an administrator.');
+      }
       throw new Error(errorData.error || `Server returned error ${response.status}`);
     }
 
@@ -62,7 +68,7 @@ export async function uploadFileToR2(
       dimensions: dimensions,
       width,
       height,
-      date: new Date().toISOString().split('T')[0],
+      date: data.media?.date || new Date().toISOString().split('T')[0],
       createdAt: data.media?.createdAt || new Date().toISOString(),
     };
 
