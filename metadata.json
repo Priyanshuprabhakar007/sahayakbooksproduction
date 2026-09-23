@@ -2,5 +2,6 @@
   "name": "Sahayak Books",
   "description": "Sahayak Books - Powered by Sahayak Associates. Premium 2026 digital bookstore, publishing house, and knowledge platform. Knowledge That Moves You Forward.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"],
+  "lastDeployment": "2026-09-23T03:53:00-07:00"
 }
