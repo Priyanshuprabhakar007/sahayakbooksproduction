@@ -676,17 +676,43 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const isHydratedRef = useRef(false);
 
   // Helper to persist direct entity mutations to server
-  const persistToServer = useCallback(async (endpoint: string, method: string, payload: any) => {
-    try {
-      await fetch(endpoint, {
+  const persistToServer = useCallback(
+    async (endpoint: string, method: string, payload: any) => {
+      const token = localStorage.getItem('sahayak_session_token');
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const response = await fetch(endpoint, {
         method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        headers,
+        body: method === 'GET' ? undefined : JSON.stringify(payload),
       });
-    } catch (err) {
-      console.error(`Failed to persist to ${endpoint}:`, err);
-    }
-  }, []);
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        console.error(
+          `Persistence failed: ${method} ${endpoint}`,
+          response.status,
+          data
+        );
+
+        throw new Error(
+          data?.error ||
+          `Server returned ${response.status} while saving`
+        );
+      }
+
+      return data;
+    },
+    []
+  );
 
     // Hydrate from Server Database on mount
   useEffect(() => {
@@ -1788,7 +1814,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return newBook;
   };
 
-  const updateBook = (updatedBook: Book) => {
+  const updateBook = async (updatedBook: Book) => {
     const calculatedDiscount =
       updatedBook.originalPrice > updatedBook.price && updatedBook.originalPrice > 0
         ? Math.round(((updatedBook.originalPrice - updatedBook.price) / updatedBook.originalPrice) * 100)
@@ -1800,12 +1826,19 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       updatedAt: new Date().toISOString(),
     };
 
-    setBooks((prev) => prev.map((b) => (b.id === updatedBook.id ? modified : b)));
-    if (quickViewBook?.id === updatedBook.id) {
-      setQuickViewBook(modified);
+    try {
+      const data = await persistToServer(`/api/books/${updatedBook.id}`, 'PUT', modified);
+      const savedBook = data?.book || modified;
+      setBooks((prev) => prev.map((b) => (b.id === updatedBook.id ? savedBook : b)));
+      if (quickViewBook?.id === updatedBook.id) {
+        setQuickViewBook(savedBook);
+      }
+      addAuditLog('Book Updated', savedBook.title, `Updated price to ₹${savedBook.price}, Stock: ${savedBook.stockCount}`);
+      return savedBook;
+    } catch (err: any) {
+      console.error('Failed to update book:', err);
+      throw err;
     }
-    addAuditLog('Book Updated', updatedBook.title, `Updated price to ₹${updatedBook.price}, Stock: ${updatedBook.stockCount}`);
-    persistToServer(`/api/books/${updatedBook.id}`, 'PUT', modified);
   };
 
   const deleteBook = (bookId: string) => {
@@ -1875,10 +1908,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     persistToServer('/api/settings', 'PUT', newSettings);
   };
 
-  const updateAuthor = (updatedAuthor: Author) => {
-    setAuthors((prev) => prev.map((a) => (a.id === updatedAuthor.id ? updatedAuthor : a)));
-    addAuditLog('Author Profile Updated', updatedAuthor.name, 'Updated bio, expertise, or photo');
-    persistToServer(`/api/authors/${updatedAuthor.id}`, 'PUT', updatedAuthor);
+  const updateAuthor = async (updatedAuthor: Author) => {
+    try {
+      const data = await persistToServer(`/api/authors/${updatedAuthor.id}`, 'PUT', updatedAuthor);
+      const savedAuthor = data?.author || updatedAuthor;
+      setAuthors((prev) => prev.map((a) => (a.id === updatedAuthor.id ? savedAuthor : a)));
+      addAuditLog('Author Profile Updated', savedAuthor.name, 'Updated bio, expertise, or photo');
+      return savedAuthor;
+    } catch (err: any) {
+      console.error('Failed to update author:', err);
+      throw err;
+    }
   };
 
   const addAuthor = (authorData: Omit<Author, 'id'>) => {
