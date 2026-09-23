@@ -1,6 +1,17 @@
 import { MediaItem, MediaUsage, R2StorageStatus, Book, Author, BlogPost, WebsiteSettings } from '../types';
 import { processImageFile } from '../utils/imageUtils';
 
+// Authenticated fetch helper
+async function authenticatedFetch(url: string, options: RequestInit = {}) {
+  const token = localStorage.getItem('sahayak_session_token');
+  if (!token) throw new Error('Please sign in as an administrator.');
+  
+  const headers = new Headers(options.headers || {});
+  headers.set('Authorization', `Bearer ${token}`);
+  
+  return await fetch(url, { ...options, headers });
+}
+
 /**
  * Upload an image or document to Cloudflare R2 via the server-side API endpoint
  */
@@ -23,51 +34,20 @@ export async function uploadFileToR2(
     onProgress,
   } = options;
 
-  if (onProgress) onProgress(15);
-
-  // 1. Client-side optimization and dimension extraction
-  let processedDataUrl: string;
   let dimensions = '800 x 1200';
-  let formattedSize = `${(file.size / 1024).toFixed(1)} KB`;
   let width = 800;
   let height = 1200;
 
-  if (file.type.startsWith('image/')) {
-    try {
-      const processed = await processImageFile(file, 2200, 2200, 0.88);
-      processedDataUrl = processed.dataUrl;
-      dimensions = processed.dimensions;
-      formattedSize = processed.size;
-      const dimParts = dimensions.split('x').map((s) => parseInt(s.trim(), 10));
-      if (dimParts.length === 2 && !isNaN(dimParts[0]) && !isNaN(dimParts[1])) {
-        width = dimParts[0];
-        height = dimParts[1];
-      }
-    } catch (e) {
-      console.warn('Image optimization fallback:', e);
-      processedDataUrl = await readFileAsDataURL(file);
-    }
-  } else {
-    // For PDFs or other allowed documents
-    processedDataUrl = await readFileAsDataURL(file);
-  }
-
-  if (onProgress) onProgress(45);
-
-  // 2. Transmit to server-side R2 upload endpoint
   try {
-    if (onProgress) onProgress(65);
-
+    if (onProgress) onProgress(15);
     const formData = new FormData();
     formData.append('file', file);
     formData.append('folder', folder.toLowerCase());
     
-    const response = await fetch('/api/media/upload', {
+    const response = await authenticatedFetch('/api/media/upload', {
       method: 'POST',
       body: formData,
     });
-
-    if (onProgress) onProgress(85);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -97,20 +77,16 @@ export async function uploadFileToR2(
 /**
  * Delete an object from Cloudflare R2 bucket
  */
-export async function deleteFileFromR2(objectKey?: string): Promise<{ success: boolean; message?: string }> {
-  if (!objectKey) return { success: true };
-
+export async function deleteFileFromR2(mediaId: string): Promise<{ success: boolean; message?: string }> {
   try {
-    const res = await fetch('/api/media/delete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ objectKey }),
+    const res = await authenticatedFetch(`/api/media/${mediaId}`, {
+      method: 'DELETE',
     });
 
     const data = await res.json();
     return data;
   } catch (err: any) {
-    console.error('Error deleting from R2:', err);
+    console.error('Error deleting media:', err);
     return { success: false, message: err.message };
   }
 }

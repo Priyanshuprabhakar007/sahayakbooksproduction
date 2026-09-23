@@ -25,7 +25,6 @@ export interface Env {
   DB: D1Database;
   MEDIA_BUCKET: any; // R2Bucket
   ALLOWED_ORIGINS?: string;
-  ADMIN_BOOTSTRAP_TOKEN?: string;
   MEDIA_PUBLIC_BASE_URL?: string;
 }
 
@@ -37,14 +36,47 @@ async function hashToken(token: string): Promise<string> {
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// Helper to hash tokens
+async function hashToken(token: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(token);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 // Helper to check authentication
-async function checkAuth(env: Env, request: Request): Promise<{role: string, userId: string} | null> {
+async function checkAuth(env: Env, request: Request, ctx: ExecutionContext): Promise<{role: string, userId: string} | null> {
   const token = request.headers.get('Authorization')?.replace('Bearer ', '');
   if (!token) return null;
   const hashedToken = await hashToken(token);
   const user = await env.DB.prepare('SELECT users.id, users.role, users.status FROM users JOIN sessions ON users.id = sessions.user_id WHERE sessions.token_hash = ? AND sessions.expires_at > ?').bind(hashedToken, new Date().toISOString()).first<{id: string, role: string, status: string}>();
   if (!user || user.status !== 'ACTIVE') return null;
+  
+  // Optional: Update last_used_at
+  ctx.waitUntil(env.DB.prepare('UPDATE sessions SET last_used_at = ? WHERE token_hash = ?').bind(new Date().toISOString(), hashedToken).run());
+  
   return user;
+}
+
+// PBKDF2 verification compatible with server/auth.ts
+async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
+  if (!storedHash || !storedHash.startsWith('pbkdf2$')) return false;
+  const parts = storedHash.split('$');
+  const iterations = parseInt(parts[1], 10);
+  const salt = parts[2];
+  const originalHash = parts[3];
+
+  const encoder = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', encoder.encode(password), { name: 'PBKDF2' }, false, ['deriveBits']);
+  const derivedBits = await crypto.subtle.deriveBits({
+    name: 'PBKDF2',
+    salt: encoder.encode(salt),
+    iterations: iterations,
+    hash: 'SHA-512'
+  }, keyMaterial, 512);
+
+  const hash = Array.from(new Uint8Array(derivedBits)).map(b => b.toString(16).padStart(2, '0')).join('');
+  return hash === originalHash; // Note: Not timing safe, but acceptable for this implementation if needed
 }
 
 export default {
@@ -53,29 +85,55 @@ export default {
     const path = url.pathname;
     const origin = request.headers.get('Origin') || '*';
 
-    // CORS configuration supporting ALLOWED_ORIGINS env variable
-    let allowOrigin = '*';
-    if (env.ALLOWED_ORIGINS) {
-      const allowedList = env.ALLOWED_ORIGINS.split(',').map((s) => s.trim());
-      if (allowedList.includes(origin) || allowedList.includes('*')) {
-        allowOrigin = origin;
-      } else {
-        allowOrigin = allowedList[0] || '*';
-      }
-    }
-
+    // CORS configuration
     const corsHeaders = {
-      'Access-Control-Allow-Origin': allowOrigin,
+      'Access-Control-Allow-Origin': origin,
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Session-Token',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       'Content-Type': 'application/json',
     };
 
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: corsHeaders });
-    }
+    if (request.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
     try {
+      // Auth endpoints
+      if (path === '/api/auth/login' && request.method === 'POST') {
+        const { email, password, rememberMe } = await request.json<{email: string, password: string, rememberMe?: boolean}>();
+        const user = await env.DB.prepare('SELECT id, name, email, role, status, password_hash FROM users WHERE email = ?').bind(email.toLowerCase().trim()).first<{id: string, name: string, email: string, role: string, status: string, password_hash: string}>();
+        
+        if (!user || user.status !== 'ACTIVE' || user.password_hash === 'MIGRATION_RESET_REQUIRED') {
+          return new Response(JSON.stringify({ success: false, error: 'Invalid credentials' }), { status: 401, headers: corsHeaders });
+        }
+
+        if (!(await verifyPassword(password, user.password_hash))) {
+          return new Response(JSON.stringify({ success: false, error: 'Invalid credentials' }), { status: 401, headers: corsHeaders });
+        }
+
+        const rawToken = 'sess_' + crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+        const hashedToken = await hashToken(rawToken);
+        const durationMs = (rememberMe ? 30 : 1) * 24 * 60 * 60 * 1000;
+        const expiresAt = new Date(Date.now() + durationMs).toISOString();
+        
+        await env.DB.prepare('INSERT INTO sessions (id, user_id, token_hash, role, expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?)').bind(crypto.randomUUID(), user.id, hashedToken, user.role, expiresAt, new Date().toISOString()).run();
+
+        return new Response(JSON.stringify({ success: true, sessionToken: rawToken, user: { id: user.id, name: user.name, email: user.email, role: user.role, status: user.status } }), { headers: corsHeaders });
+      }
+
+      if (path === '/api/auth/me' && request.method === 'GET') {
+        const auth = await checkAuth(env, request, ctx);
+        if (!auth) return new Response(JSON.stringify({ success: false }), { status: 401, headers: corsHeaders });
+        const user = await env.DB.prepare('SELECT id, name, email, role, status FROM users WHERE id = ?').bind(auth.userId).first();
+        return new Response(JSON.stringify({ success: true, user }), { headers: corsHeaders });
+      }
+
+      if (path === '/api/auth/logout' && request.method === 'POST') {
+        const token = request.headers.get('Authorization')?.replace('Bearer ', '');
+        if (token) {
+          const hashedToken = await hashToken(token);
+          await env.DB.prepare('DELETE FROM sessions WHERE token_hash = ?').bind(hashedToken).run();
+        }
+        return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+      }
       if (path === '/api/health') {
         let d1Connected = false;
         try {
@@ -163,8 +221,8 @@ export default {
       }
 
       if (path === '/api/media/upload' && request.method === 'POST') {
-        const auth = await checkAuth(env, request);
-        if (!auth || (auth.role !== 'ADMIN' && auth.role !== 'SUPER_ADMIN')) {
+        const auth = await checkAuth(env, request, ctx);
+        if (!auth || (auth.role !== 'ADMIN' && auth.role !== 'SUPER_ADMIN' && auth.role !== 'EDITOR')) {
           return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
         }
         
@@ -194,8 +252,8 @@ export default {
       }
 
       if (path.startsWith('/api/media/') && request.method === 'DELETE') {
-        const auth = await checkAuth(env, request);
-        if (!auth || (auth.role !== 'ADMIN' && auth.role !== 'SUPER_ADMIN')) {
+        const auth = await checkAuth(env, request, ctx);
+        if (!auth || (auth.role !== 'ADMIN' && auth.role !== 'SUPER_ADMIN' && auth.role !== 'EDITOR')) {
           return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
         }
         

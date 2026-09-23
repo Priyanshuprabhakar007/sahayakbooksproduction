@@ -569,23 +569,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [sessionToken]);
 
   // Dedicated Admin / Staff Session
-  const [adminUser, setAdminUser] = useState<UserProfile | null>(() => {
-    try {
-      const saved = localStorage.getItem('sahayak_admin_user');
-      if (saved && saved !== 'null' && saved !== 'undefined') {
-        const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed === 'object' && parsed.role) {
-          return parsed;
-        }
-      }
-    } catch {
-      // ignore
-    }
-    return DEFAULT_ADMIN_USER;
-  });
+  const [adminUser, setAdminUser] = useState<UserProfile | null>(null);
 
-  const hasAdminAccess = !!adminUser && (adminUser.role === 'SUPER_ADMIN' || adminUser.role === 'ADMIN' || adminUser.role === 'EDITOR' || adminUser.role === 'admin');
-  const isSuperAdmin = !!adminUser && (adminUser.role === 'SUPER_ADMIN' || adminUser.role === 'ADMIN' || adminUser.role === 'admin');
+  const hasAdminAccess = !!adminUser && (adminUser.role === 'SUPER_ADMIN' || adminUser.role === 'ADMIN' || adminUser.role === 'EDITOR');
+  const isSuperAdmin = !!adminUser && (adminUser.role === 'SUPER_ADMIN' || adminUser.role === 'ADMIN');
 
   // Wishlist & Cart
   const [wishlist, setWishlist] = useState<string[]>(() => {
@@ -1160,11 +1147,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const ensureAdminAccess = () => {
-    if (!adminUser || !hasAdminAccess) {
-      setAdminUser(DEFAULT_ADMIN_USER);
-      localStorage.setItem('sahayak_admin_user', JSON.stringify(DEFAULT_ADMIN_USER));
-      addAuditLog('Admin Auto-Access', 'Admin Session', 'Restored master administrative access');
-    }
+    // No-op in production. Admin must be authenticated via /api/auth/login
   };
 
   const updateUserProfile = (data: Partial<UserProfile>) => {
