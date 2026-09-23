@@ -5,17 +5,11 @@
 [build.environment]
   NODE_VERSION = "22"
 
-# TEMPORARY API HANDLING
-# Cloudflare Worker will be connected after the frontend deployment.
-# Prevent /api requests from accidentally returning index.html.
-
 [[redirects]]
   from = "/api/*"
-  to = "/404.html"
-  status = 404
+  to = "https://sahayakbooks-api.goyalaclasses.workers.dev/api/:splat"
+  status = 200
   force = true
-
-# React SPA routing - MUST remain the last redirect
 
 [[redirects]]
   from = "/*"
