@@ -118,6 +118,35 @@ export default {
         return new Response(JSON.stringify({ success: true, user }), { headers: corsHeaders });
       }
 
+      if (path === '/api/admin/set-password' && request.method === 'POST') {
+        const { email, password } = await request.json<{email: string, password: string}>();
+        const user = await env.DB.prepare('SELECT id, password_hash FROM users WHERE email = ?').bind(email.toLowerCase().trim()).first<{id: string, password_hash: string}>();
+        
+        if (!user || user.password_hash !== 'MIGRATION_RESET_REQUIRED') {
+          return new Response(JSON.stringify({ success: false, error: 'Unauthorized or already set' }), { status: 403, headers: corsHeaders });
+        }
+
+        const iterations = 100000;
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
+        
+        const encoder = new TextEncoder();
+        const keyMaterial = await crypto.subtle.importKey('raw', encoder.encode(password), { name: 'PBKDF2' }, false, ['deriveBits']);
+        const derivedBits = await crypto.subtle.deriveBits({
+          name: 'PBKDF2',
+          salt: salt,
+          iterations: iterations,
+          hash: 'SHA-512'
+        }, keyMaterial, 512);
+
+        const hash = Array.from(new Uint8Array(derivedBits)).map(b => b.toString(16).padStart(2, '0')).join('');
+        const newHash = `pbkdf2$${iterations}$${saltHex}$${hash}`;
+
+        await env.DB.prepare('UPDATE users SET password_hash = ?, status = ? WHERE id = ?').bind(newHash, 'ACTIVE', user.id).run();
+        
+        return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+      }
+
       if (path === '/api/auth/logout' && request.method === 'POST') {
         const token = request.headers.get('Authorization')?.replace('Bearer ', '');
         if (token) {
@@ -195,71 +224,6 @@ export default {
       if (path === '/api/media' && request.method === 'GET') {
         const mediaItems = await getAllMedia(env.DB);
         return new Response(JSON.stringify({ success: true, mediaItems }), { headers: corsHeaders });
-      }
-
-      if (path === '/api/auth/login' && request.method === 'POST') {
-        // Implementation for PBKDF2 password verification and session creation
-        return new Response(JSON.stringify({ success: false, error: 'Not implemented yet' }), { status: 501, headers: corsHeaders });
-      }
-
-      if (path === '/api/auth/me' && request.method === 'GET') {
-        const auth = await checkAuth(env, request);
-        return new Response(JSON.stringify({ success: !!auth, user: auth }), { headers: corsHeaders });
-      }
-
-      if (path === '/api/auth/logout' && request.method === 'POST') {
-        // Implementation for session deletion
-        return new Response(JSON.stringify({ success: false, error: 'Not implemented yet' }), { status: 501, headers: corsHeaders });
-      }
-
-      if (path === '/api/media/upload' && request.method === 'POST') {
-        const auth = await checkAuth(env, request, ctx);
-        if (!auth || (auth.role !== 'ADMIN' && auth.role !== 'SUPER_ADMIN' && auth.role !== 'EDITOR')) {
-          return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
-        }
-        
-        const formData = await request.formData();
-        const file = formData.get('file') as File;
-        if (!file) return new Response(JSON.stringify({ success: false, error: 'No file uploaded' }), { status: 400, headers: corsHeaders });
-
-        const folder = formData.get('folder') as string || 'misc';
-        const key = `${folder}/${crypto.randomUUID()}-${file.name}`;
-        
-        await env.MEDIA_BUCKET.put(key, file.stream(), {
-          httpMetadata: { contentType: file.type }
-        });
-
-        if (!env.MEDIA_PUBLIC_BASE_URL) {
-          return new Response(JSON.stringify({ success: false, error: 'MEDIA_PUBLIC_BASE_URL not configured' }), { status: 500, headers: corsHeaders });
-        }
-        
-        const publicUrl = `${env.MEDIA_PUBLIC_BASE_URL.replace(/\/$/, '')}/${key}`;
-        const id = `med-${Date.now()}`;
-        
-        await env.DB.prepare('INSERT INTO media (id, filename, r2_key, public_url, mime_type, file_size_bytes, folder, uploaded_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').bind(
-          id, file.name, key, publicUrl, file.type, file.size, folder, auth.userId, new Date().toISOString()
-        ).run();
-
-        return new Response(JSON.stringify({ success: true, media: { id, filename: file.name, r2_key: key, public_url: publicUrl } }), { headers: corsHeaders });
-      }
-
-      if (path.startsWith('/api/media/') && request.method === 'DELETE') {
-        const auth = await checkAuth(env, request, ctx);
-        if (!auth || (auth.role !== 'ADMIN' && auth.role !== 'SUPER_ADMIN' && auth.role !== 'EDITOR')) {
-          return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
-        }
-        
-        const id = path.replace('/api/media/', '');
-        const media = await env.DB.prepare('SELECT r2_key FROM media WHERE id = ?').bind(id).first<{r2_key: string}>();
-        if (!media) return new Response(JSON.stringify({ success: false, error: 'Media not found' }), { status: 404, headers: corsHeaders });
-
-        const usage = await env.DB.prepare('SELECT count(*) as count FROM media_usage WHERE media_id = ?').bind(id).first<{count: number}>();
-        if (usage && usage.count > 0) return new Response(JSON.stringify({ success: false, error: 'Media in use' }), { status: 409, headers: corsHeaders });
-
-        await env.MEDIA_BUCKET.delete(media.r2_key);
-        await env.DB.prepare('DELETE FROM media WHERE id = ?').bind(id).run();
-        
-        return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
       }
 
       if (path === '/api/settings') {

@@ -24,6 +24,7 @@ import { ForgotPasswordView } from './views/ForgotPasswordView';
 import { ResetPasswordView } from './views/ResetPasswordView';
 import { VerifyEmailView } from './views/VerifyEmailView';
 import { AdminDashboardView } from './views/AdminDashboardView';
+import { AdminSetPasswordView } from './views/AdminSetPasswordView';
 import { AuthorsView, AuthorDetailView } from './views/AuthorsView';
 import { BlogsView, BlogDetailView } from './views/BlogsView';
 import { AboutView } from './views/AboutView';
@@ -151,6 +152,9 @@ const MainRouter: React.FC = () => {
     }
 
     // 8. Admin Control Center
+    if (cleanPath === '/admin/set-password') {
+      return <AdminSetPasswordView />;
+    }
     if (cleanPath.startsWith('/admin')) {
       return <AdminDashboardView />;
     }
