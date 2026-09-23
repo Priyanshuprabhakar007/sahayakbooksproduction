@@ -7,3 +7,7 @@ binding = "DB"
 database_name = "sahayakbooks-production"
 database_id = "13ea1d62-ab1e-4091-b6da-d80d70a45fc0"
 migrations_dir = "../migrations"
+
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "sahayakbooks-media"

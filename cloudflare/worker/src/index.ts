@@ -23,7 +23,16 @@ interface ExecutionContext {
 
 export interface Env {
   DB: D1Database;
+  MEDIA_BUCKET: any; // R2Bucket
   ALLOWED_ORIGINS?: string;
+}
+
+// Helper to check authentication
+async function checkAuth(env: Env, request: Request): Promise<{role: string, userId: string} | null> {
+  const token = request.headers.get('Authorization')?.replace('Bearer ', '');
+  if (!token) return null;
+  const user = await env.DB.prepare('SELECT users.id, users.role FROM users JOIN sessions ON users.id = sessions.user_id WHERE sessions.token_hash = ?').bind(token).first<{id: string, role: string}>();
+  return user || null;
 }
 
 export default {
@@ -121,9 +130,55 @@ export default {
         return new Response(JSON.stringify({ success: true, blog }), { headers: corsHeaders });
       }
 
-      if (path === '/api/media') {
+      if (path === '/api/media' && request.method === 'GET') {
         const mediaItems = await getAllMedia(env.DB);
         return new Response(JSON.stringify({ success: true, mediaItems }), { headers: corsHeaders });
+      }
+
+      if (path === '/api/media/upload' && request.method === 'POST') {
+        const auth = await checkAuth(env, request);
+        if (!auth || (auth.role !== 'ADMIN' && auth.role !== 'SUPER_ADMIN')) {
+          return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+        }
+        
+        const formData = await request.formData();
+        const file = formData.get('file') as File;
+        if (!file) return new Response(JSON.stringify({ success: false, error: 'No file uploaded' }), { status: 400, headers: corsHeaders });
+
+        const folder = formData.get('folder') as string || 'misc';
+        const key = `${folder}/${crypto.randomUUID()}-${file.name}`;
+        
+        await env.MEDIA_BUCKET.put(key, file.stream(), {
+          httpMetadata: { contentType: file.type }
+        });
+
+        const publicUrl = `https://media.sahayakbooks.com/${key}`; // Placeholder URL
+        const id = `med-${Date.now()}`;
+        
+        await env.DB.prepare('INSERT INTO media (id, filename, r2_key, public_url, mime_type, file_size_bytes, folder, uploaded_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').bind(
+          id, file.name, key, publicUrl, file.type, file.size, folder, auth.userId, new Date().toISOString()
+        ).run();
+
+        return new Response(JSON.stringify({ success: true, media: { id, filename: file.name, r2_key: key, public_url: publicUrl } }), { headers: corsHeaders });
+      }
+
+      if (path.startsWith('/api/media/') && request.method === 'DELETE') {
+        const auth = await checkAuth(env, request);
+        if (!auth || (auth.role !== 'ADMIN' && auth.role !== 'SUPER_ADMIN')) {
+          return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+        }
+        
+        const id = path.replace('/api/media/', '');
+        const media = await env.DB.prepare('SELECT r2_key FROM media WHERE id = ?').bind(id).first<{r2_key: string}>();
+        if (!media) return new Response(JSON.stringify({ success: false, error: 'Media not found' }), { status: 404, headers: corsHeaders });
+
+        const usage = await env.DB.prepare('SELECT count(*) as count FROM media_usage WHERE media_id = ?').bind(id).first<{count: number}>();
+        if (usage && usage.count > 0) return new Response(JSON.stringify({ success: false, error: 'Media in use' }), { status: 409, headers: corsHeaders });
+
+        await env.MEDIA_BUCKET.delete(media.r2_key);
+        await env.DB.prepare('DELETE FROM media WHERE id = ?').bind(id).run();
+        
+        return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
       }
 
       if (path === '/api/settings') {

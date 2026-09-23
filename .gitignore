@@ -4,3 +4,4 @@ dist/
 .DS_Store
 cloudflare/generated/*.sql
 !cloudflare/generated/.gitkeep
+cloudflare/generated/*.sql

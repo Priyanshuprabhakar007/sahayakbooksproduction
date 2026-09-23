@@ -58,20 +58,13 @@ export async function uploadFileToR2(
   try {
     if (onProgress) onProgress(65);
 
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder.toLowerCase());
+    
     const response = await fetch('/api/media/upload', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        dataUrl: processedDataUrl,
-        originalFilename: file.name,
-        folder: folder.toLowerCase(),
-        mimeType: file.type,
-        altText: altText || file.name.replace(/\.[^/.]+$/, ''),
-        caption: caption || '',
-        uploadedBy,
-      }),
+      body: formData,
     });
 
     if (onProgress) onProgress(85);
