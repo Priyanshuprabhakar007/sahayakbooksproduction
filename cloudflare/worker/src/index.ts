@@ -36,21 +36,13 @@ async function hashToken(token: string): Promise<string> {
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Helper to hash tokens
-async function hashToken(token: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(token);
-  const hash = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
 // Helper to check authentication
 async function checkAuth(env: Env, request: Request, ctx: ExecutionContext): Promise<{role: string, userId: string} | null> {
   const token = request.headers.get('Authorization')?.replace('Bearer ', '');
   if (!token) return null;
   const hashedToken = await hashToken(token);
   const user = await env.DB.prepare('SELECT users.id, users.role, users.status FROM users JOIN sessions ON users.id = sessions.user_id WHERE sessions.token_hash = ? AND sessions.expires_at > ?').bind(hashedToken, new Date().toISOString()).first<{id: string, role: string, status: string}>();
-  if (!user || user.status !== 'ACTIVE') return null;
+  if (!user || (user.status || '').toUpperCase() !== 'ACTIVE') return null;
   
   // Optional: Update last_used_at
   ctx.waitUntil(env.DB.prepare('UPDATE sessions SET last_used_at = ? WHERE token_hash = ?').bind(new Date().toISOString(), hashedToken).run());
@@ -101,7 +93,7 @@ export default {
         const { email, password, rememberMe } = await request.json<{email: string, password: string, rememberMe?: boolean}>();
         const user = await env.DB.prepare('SELECT id, name, email, role, status, password_hash FROM users WHERE email = ?').bind(email.toLowerCase().trim()).first<{id: string, name: string, email: string, role: string, status: string, password_hash: string}>();
         
-        if (!user || user.status !== 'ACTIVE' || user.password_hash === 'MIGRATION_RESET_REQUIRED') {
+        if (!user || (user.status || '').toUpperCase() !== 'ACTIVE' || user.password_hash === 'MIGRATION_RESET_REQUIRED') {
           return new Response(JSON.stringify({ success: false, error: 'Invalid credentials' }), { status: 401, headers: corsHeaders });
         }
 

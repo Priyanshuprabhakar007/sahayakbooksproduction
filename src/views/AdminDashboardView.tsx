@@ -213,8 +213,9 @@ export const AdminDashboardView: React.FC = () => {
   }, [currentPath]);
 
   // Login Form State (when locked)
-  const [loginEmail, setLoginEmail] = useState('admin@sahayakassociates.org');
-  const [loginRole, setLoginRole] = useState<UserRole>('SUPER_ADMIN');
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [loginError, setLoginError] = useState('');
 
   // Search & Filter States
@@ -432,15 +433,15 @@ export const AdminDashboardView: React.FC = () => {
   const newLeadsCount = useMemo(() => (leads || []).filter((l) => l.status === 'new').length, [leads]);
 
   // Handle Admin Login
-  const handleAdminLoginSubmit = (e: React.FormEvent) => {
+  const handleAdminLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!loginEmail.trim()) {
-      setLoginError('Please provide a valid administrative email.');
+    if (!loginEmail.trim() || !loginPassword.trim()) {
+      setLoginError('Please provide email and password.');
       return;
     }
-    const res = adminLogin(loginEmail.trim(), loginRole);
+    const res = await adminLogin(loginEmail.trim(), loginPassword.trim(), rememberMe);
     if (!res.success) {
-      setLoginError(res.message || 'Authentication failed');
+      setLoginError(res.error || 'Authentication failed');
     } else {
       setLoginError('');
     }
@@ -943,16 +944,25 @@ export const AdminDashboardView: React.FC = () => {
             </div>
 
             <div>
-              <label className="block font-bold text-stone-700 mb-1">Select Access Role Profile</label>
-              <select
-                value={loginRole}
-                onChange={(e) => setLoginRole(e.target.value as UserRole)}
-                className="w-full p-3 bg-stone-50 border border-stone-300 rounded-xl font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]"
-              >
-                <option value="SUPER_ADMIN">Master Super Admin (Full Control)</option>
-                <option value="ADMIN">Catalog & Order Manager (Admin)</option>
-                <option value="EDITOR">Content & Review Editor</option>
-              </select>
+              <label className="block font-bold text-stone-700 mb-1">Password</label>
+              <input
+                type="password"
+                required
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                className="w-full p-3 bg-stone-50 border border-stone-300 rounded-xl font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0B192C]"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="rounded border-stone-300 text-[#0B192C] focus:ring-[#0B192C]"
+              />
+              <label htmlFor="rememberMe" className="font-bold text-stone-700">Remember Me (30 days)</label>
             </div>
 
             <button
@@ -963,42 +973,6 @@ export const AdminDashboardView: React.FC = () => {
               <span>Authenticate & Enter Admin Suite</span>
             </button>
           </form>
-
-          {/* Quick Demo Role Logins */}
-          <div className="border-t border-stone-200 pt-4 space-y-2">
-            <div className="text-[11px] font-bold text-stone-400 uppercase tracking-wider text-center">
-              Quick 1-Click Access for Evaluation
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  adminLogin('admin@sahayakassociates.org', 'SUPER_ADMIN');
-                }}
-                className="p-2 rounded-lg bg-stone-100 hover:bg-[#0B192C] hover:text-[#C5A059] text-stone-700 text-[11px] font-bold text-center transition-colors"
-              >
-                Super Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  adminLogin('manager@sahayakassociates.org', 'ADMIN');
-                }}
-                className="p-2 rounded-lg bg-stone-100 hover:bg-[#0B192C] hover:text-[#C5A059] text-stone-700 text-[11px] font-bold text-center transition-colors"
-              >
-                Store Admin
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  adminLogin('editor@sahayakassociates.org', 'EDITOR');
-                }}
-                className="p-2 rounded-lg bg-stone-100 hover:bg-[#0B192C] hover:text-[#C5A059] text-stone-700 text-[11px] font-bold text-center transition-colors"
-              >
-                Editor
-              </button>
-            </div>
-          </div>
 
           {/* Explicit Return to Storefront Option */}
           <div className="pt-2 border-t border-stone-100">

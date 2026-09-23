@@ -668,35 +668,31 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, []);
 
-  // Hydrate from Server Database on mount
+    // Hydrate from Server Database on mount
   useEffect(() => {
     let isMounted = true;
     async function loadServerDb() {
       try {
-        const res = await fetch('/api/db');
-        if (res.ok) {
-          const json = await res.json();
-          if (json.success && json.data && isMounted) {
-            const data = json.data;
-            if (data.books && Array.isArray(data.books)) {
-              setBooks(data.books);
-            }
-            if (data.authors && Array.isArray(data.authors)) setAuthors(data.authors);
-            if (data.categories && Array.isArray(data.categories)) setCategories(data.categories);
-            if (data.reviews && Array.isArray(data.reviews)) setReviews(data.reviews);
-            if (data.blogs && Array.isArray(data.blogs)) setBlogs(data.blogs);
-            if (data.coupons && Array.isArray(data.coupons)) setCoupons(data.coupons);
-            if (data.settings) setSettings(data.settings);
-            if (data.orders && Array.isArray(data.orders)) setOrders(data.orders);
-            if (data.leads && Array.isArray(data.leads)) setEnquiries(data.leads);
-            if (data.mediaItems && Array.isArray(data.mediaItems)) setMediaItems(data.mediaItems);
-            if (data.allUsers && Array.isArray(data.allUsers)) setAllUsers(data.allUsers);
-            if (data.auditLogs && Array.isArray(data.auditLogs)) setAuditLogs(data.auditLogs);
-            if (data.subscribers && Array.isArray(data.subscribers)) setSubscribers(data.subscribers);
-            if (data.googleSyncLogs && Array.isArray(data.googleSyncLogs)) setGoogleSyncLogs(data.googleSyncLogs);
-
+        const endpoints = [
+          '/api/books',
+          '/api/authors',
+          '/api/categories',
+          '/api/blogs',
+          '/api/media',
+          '/api/settings'
+        ];
+        const responses = await Promise.all(endpoints.map(ep => fetch(ep)));
+        const data = await Promise.all(responses.map(r => r.json()));
+        
+        if (isMounted) {
+            // Merge responses into application state
+            if (data[0].success) setBooks(data[0].books);
+            if (data[1].success) setAuthors(data[1].authors);
+            if (data[2].success) setCategories(data[2].categories);
+            if (data[3].success) setBlogs(data[3].blogs);
+            if (data[4].success) setMediaItems(data[4].mediaItems);
+            if (data[5].success) setSettings(data[5].settings);
             isHydratedRef.current = true;
-          }
         }
       } catch (err) {
         console.warn('Could not connect to server database, using local cache:', err);
@@ -1111,43 +1107,64 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     trackEvent('click', 'Customer Logged Out');
   };
 
-  const adminLogin = (email: string, role: UserRole = 'SUPER_ADMIN') => {
-    const validEmail = email.trim();
-    if (!validEmail) {
-      return { success: false, message: 'Please enter an authorized admin email.' };
+  const adminLogin = async (
+    email: string,
+    password: string,
+    rememberMe?: boolean
+  ): Promise<{
+    success: boolean;
+    message?: string;
+    error?: string;
+  }> => {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, rememberMe }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSessionToken(data.sessionToken);
+        localStorage.setItem('sahayak_session_token', data.sessionToken);
+        setCurrentUser(data.user);
+        localStorage.setItem('sahayak_current_user', JSON.stringify(data.user));
+        if (
+          data.user.role === 'SUPER_ADMIN' ||
+          data.user.role === 'ADMIN' ||
+          data.user.role === 'EDITOR'
+        ) {
+          setAdminUser(data.user);
+        }
+        addAuditLog('Admin Login', 'Admin Session', `Successful login as ${data.user.role} (${data.user.email})`);
+        return { success: true };
+      } else {
+        return { success: false, error: data.error || 'Invalid credentials' };
+      }
+    } catch (err: any) {
+      return { success: false, error: 'Server connection failed' };
     }
-    const adminProfile: UserProfile = {
-      id: `usr-admin-${Date.now()}`,
-      name: role === 'SUPER_ADMIN' ? 'Sandeep Sahni' : role === 'ADMIN' ? 'Editorial Director' : 'Content Editor',
-      email: validEmail,
-      phone: '+91 98765 43210',
-      role,
-      status: 'active',
-      registrationDate: '2025-01-01',
-      lastLogin: 'Just now',
-      addresses: [],
-      wishlist: [],
-      orderIds: [],
-      savedEbooks: [],
-    };
-    setAdminUser(adminProfile);
-    addAuditLog('Admin Login', 'Admin Session', `Authorized login as ${role} (${validEmail})`);
-    return { success: true };
   };
 
-  const adminLogout = () => {
-    addAuditLog('Admin Logout', 'Admin Session', `Logged out admin session`);
-    setAdminUser(null);
-    try {
-      localStorage.removeItem('sahayak_admin_user');
-    } catch {
-      // ignore
+  const adminLogout = async () => {
+    const token = localStorage.getItem('sahayak_session_token');
+    if (token) {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
     }
+    addAuditLog('Admin Logout', 'Admin Session', `Logged out admin session`);
+    setSessionToken(null);
+    setAdminUser(null);
+    setCurrentUser(null);
+    localStorage.removeItem('sahayak_session_token');
+    localStorage.removeItem('sahayak_current_user');
+    localStorage.removeItem('sahayak_admin_user');
     navigate('/');
   };
 
   const ensureAdminAccess = () => {
-    // No-op in production. Admin must be authenticated via /api/auth/login
+    // No-op in production.
   };
 
   const updateUserProfile = (data: Partial<UserProfile>) => {
