@@ -1,0 +1,8 @@
+name = "sahayakbooks-api"
+main = "src/index.ts"
+compatibility_date = "2026-03-22"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sahayakbooks-production"
+database_id = "YOUR_D1_DATABASE_ID"
