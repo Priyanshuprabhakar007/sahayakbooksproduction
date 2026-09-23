@@ -25,14 +25,26 @@ export interface Env {
   DB: D1Database;
   MEDIA_BUCKET: any; // R2Bucket
   ALLOWED_ORIGINS?: string;
+  ADMIN_BOOTSTRAP_TOKEN?: string;
+  MEDIA_PUBLIC_BASE_URL?: string;
+}
+
+// Helper to hash tokens
+async function hashToken(token: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(token);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // Helper to check authentication
 async function checkAuth(env: Env, request: Request): Promise<{role: string, userId: string} | null> {
   const token = request.headers.get('Authorization')?.replace('Bearer ', '');
   if (!token) return null;
-  const user = await env.DB.prepare('SELECT users.id, users.role FROM users JOIN sessions ON users.id = sessions.user_id WHERE sessions.token_hash = ?').bind(token).first<{id: string, role: string}>();
-  return user || null;
+  const hashedToken = await hashToken(token);
+  const user = await env.DB.prepare('SELECT users.id, users.role, users.status FROM users JOIN sessions ON users.id = sessions.user_id WHERE sessions.token_hash = ? AND sessions.expires_at > ?').bind(hashedToken, new Date().toISOString()).first<{id: string, role: string, status: string}>();
+  if (!user || user.status !== 'ACTIVE') return null;
+  return user;
 }
 
 export default {
@@ -135,6 +147,21 @@ export default {
         return new Response(JSON.stringify({ success: true, mediaItems }), { headers: corsHeaders });
       }
 
+      if (path === '/api/auth/login' && request.method === 'POST') {
+        // Implementation for PBKDF2 password verification and session creation
+        return new Response(JSON.stringify({ success: false, error: 'Not implemented yet' }), { status: 501, headers: corsHeaders });
+      }
+
+      if (path === '/api/auth/me' && request.method === 'GET') {
+        const auth = await checkAuth(env, request);
+        return new Response(JSON.stringify({ success: !!auth, user: auth }), { headers: corsHeaders });
+      }
+
+      if (path === '/api/auth/logout' && request.method === 'POST') {
+        // Implementation for session deletion
+        return new Response(JSON.stringify({ success: false, error: 'Not implemented yet' }), { status: 501, headers: corsHeaders });
+      }
+
       if (path === '/api/media/upload' && request.method === 'POST') {
         const auth = await checkAuth(env, request);
         if (!auth || (auth.role !== 'ADMIN' && auth.role !== 'SUPER_ADMIN')) {
@@ -152,7 +179,11 @@ export default {
           httpMetadata: { contentType: file.type }
         });
 
-        const publicUrl = `https://media.sahayakbooks.com/${key}`; // Placeholder URL
+        if (!env.MEDIA_PUBLIC_BASE_URL) {
+          return new Response(JSON.stringify({ success: false, error: 'MEDIA_PUBLIC_BASE_URL not configured' }), { status: 500, headers: corsHeaders });
+        }
+        
+        const publicUrl = `${env.MEDIA_PUBLIC_BASE_URL.replace(/\/$/, '')}/${key}`;
         const id = `med-${Date.now()}`;
         
         await env.DB.prepare('INSERT INTO media (id, filename, r2_key, public_url, mime_type, file_size_bytes, folder, uploaded_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').bind(
