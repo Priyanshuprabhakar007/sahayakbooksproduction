@@ -60,3 +60,5 @@ npx wrangler@latest d1 execute sahayakbooks-production --remote --file=generated
 - **Session Security**: Sessions are stored using secure cryptographic hashes (`token_hash`) instead of plaintext tokens.
 - **Health Check**: `/api/health` performs a live lightweight `SELECT 1` query against D1 to verify database connectivity.
 - **Relationship Integrity**: The migration script performs exhaustive relationship validation (detecting missing authors, missing books, duplicate emails, duplicate slugs, and R2 media asset mappings) prior to SQL generation.
+
+Do not change any application code.
