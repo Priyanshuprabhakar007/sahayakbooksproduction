@@ -205,6 +205,62 @@ export default {
 
       if (path.startsWith('/api/books/')) {
         const idOrSlug = path.replace('/api/books/', '');
+        if (request.method === 'PUT') {
+          const auth = await checkAuth(env, request, ctx);
+          if (!auth || !['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(auth.role)) {
+            return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+          }
+
+          const currentBook = await getBookByIdOrSlug(env.DB, idOrSlug);
+          if (!currentBook) {
+            return new Response(JSON.stringify({ success: false, error: 'Book not found' }), { status: 404, headers: corsHeaders });
+          }
+
+          const body = await request.json() as any;
+          await env.DB.prepare(`
+            UPDATE books SET 
+              cover_image = ?,
+              back_cover_image = ?,
+              spine_image = ?,
+              mockup_3d_image = ?,
+              gallery_images = ?,
+              preview_images = ?,
+              title = ?,
+              subtitle = ?,
+              price = ?,
+              original_price = ?,
+              stock_count = ?,
+              status = ?,
+              is_featured = ?,
+              is_bestseller = ?,
+              is_new_release = ?,
+              updated_at = ?
+            WHERE id = ? OR slug = ?
+          `).bind(
+            body.coverImage !== undefined ? body.coverImage : currentBook.cover_image,
+            body.backCoverImage !== undefined ? body.backCoverImage : currentBook.back_cover_image,
+            body.spineImage !== undefined ? body.spineImage : currentBook.spine_image,
+            body.mockup3dImage !== undefined ? body.mockup3dImage : currentBook.mockup_3d_image,
+            body.galleryImages !== undefined ? JSON.stringify(body.galleryImages) : (currentBook.gallery_images ? JSON.stringify(currentBook.gallery_images) : '[]'),
+            body.previewImages !== undefined ? JSON.stringify(body.previewImages) : (currentBook.preview_images ? JSON.stringify(currentBook.preview_images) : '[]'),
+            body.title !== undefined ? body.title : currentBook.title,
+            body.subtitle !== undefined ? body.subtitle : currentBook.subtitle,
+            body.price !== undefined ? body.price : currentBook.price,
+            body.originalPrice !== undefined ? body.originalPrice : currentBook.original_price,
+            body.stockCount !== undefined ? body.stockCount : currentBook.stock_count,
+            body.status !== undefined ? body.status : currentBook.status,
+            body.isFeatured !== undefined ? (body.isFeatured ? 1 : 0) : (currentBook.is_featured ? 1 : 0),
+            body.isBestseller !== undefined ? (body.isBestseller ? 1 : 0) : (currentBook.is_bestseller ? 1 : 0),
+            body.isNewRelease !== undefined ? (body.isNewRelease ? 1 : 0) : (currentBook.is_new_release ? 1 : 0),
+            new Date().toISOString(),
+            idOrSlug,
+            idOrSlug
+          ).run();
+
+          const updatedBook = await getBookByIdOrSlug(env.DB, idOrSlug);
+          return new Response(JSON.stringify({ success: true, book: updatedBook }), { headers: corsHeaders });
+        }
+
         const book = await getBookByIdOrSlug(env.DB, idOrSlug);
         if (!book) {
           return new Response(JSON.stringify({ success: false, error: 'Book not found' }), { status: 404, headers: corsHeaders });
