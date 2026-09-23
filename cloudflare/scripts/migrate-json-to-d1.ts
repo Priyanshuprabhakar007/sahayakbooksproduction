@@ -230,7 +230,6 @@ export function runMigrationAndSeed(dryRun = false): MigrationReport {
   sqlLines.push('-- Sahayak Books Production D1 Seed Script');
   sqlLines.push(`-- Generated at: ${new Date().toISOString()}`);
   sqlLines.push('-- NOTE: Imported legacy users without valid password hashes require password reset (MIGRATION_RESET_REQUIRED)');
-  sqlLines.push('BEGIN TRANSACTION;');
   sqlLines.push('');
 
   // 1. Users
@@ -581,7 +580,6 @@ export function runMigrationAndSeed(dryRun = false): MigrationReport {
   }
 
   sqlLines.push('');
-  sqlLines.push('COMMIT;');
 
   const generatedDir = path.resolve(process.cwd(), 'cloudflare/generated');
   if (!fs.existsSync(generatedDir)) {
