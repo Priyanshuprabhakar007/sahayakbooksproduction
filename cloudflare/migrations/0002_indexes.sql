@@ -2,6 +2,9 @@
 -- Migration: 0002_indexes.sql
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_sessions_token_hash ON sessions(token_hash);
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
 CREATE INDEX IF NOT EXISTS idx_books_slug ON books(slug);
 CREATE INDEX IF NOT EXISTS idx_books_sku ON books(sku);
 CREATE INDEX IF NOT EXISTS idx_books_isbn ON books(isbn);

@@ -23,15 +23,28 @@ interface ExecutionContext {
 
 export interface Env {
   DB: D1Database;
+  ALLOWED_ORIGINS?: string;
 }
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
+    const origin = request.headers.get('Origin') || '*';
+
+    // CORS configuration supporting ALLOWED_ORIGINS env variable
+    let allowOrigin = '*';
+    if (env.ALLOWED_ORIGINS) {
+      const allowedList = env.ALLOWED_ORIGINS.split(',').map((s) => s.trim());
+      if (allowedList.includes(origin) || allowedList.includes('*')) {
+        allowOrigin = origin;
+      } else {
+        allowOrigin = allowedList[0] || '*';
+      }
+    }
 
     const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': allowOrigin,
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Session-Token',
       'Content-Type': 'application/json',
@@ -43,7 +56,22 @@ export default {
 
     try {
       if (path === '/api/health') {
-        return new Response(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString(), d1Connected: true }), { headers: corsHeaders });
+        let d1Connected = false;
+        try {
+          await env.DB.prepare('SELECT 1').run();
+          d1Connected = true;
+        } catch {
+          d1Connected = false;
+        }
+
+        return new Response(
+          JSON.stringify({
+            status: d1Connected ? 'ok' : 'degraded',
+            timestamp: new Date().toISOString(),
+            d1Connected,
+          }),
+          { status: d1Connected ? 200 : 503, headers: corsHeaders }
+        );
       }
 
       if (path === '/api/books') {
@@ -105,7 +133,10 @@ export default {
 
       return new Response(JSON.stringify({ success: false, error: 'Not found' }), { status: 404, headers: corsHeaders });
     } catch (err: any) {
-      return new Response(JSON.stringify({ success: false, error: err.message || 'Internal server error' }), { status: 500, headers: corsHeaders });
+      return new Response(
+        JSON.stringify({ success: false, error: err.message || 'Internal server error' }),
+        { status: 500, headers: corsHeaders }
+      );
     }
   },
 };

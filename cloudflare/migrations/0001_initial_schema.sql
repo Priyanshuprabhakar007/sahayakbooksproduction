@@ -28,14 +28,16 @@ CREATE TABLE IF NOT EXISTS users (
   last_login_at TEXT
 );
 
--- 2. Sessions Table
+-- 2. Sessions Table (Store hashed tokens only - never plaintext)
 CREATE TABLE IF NOT EXISTS sessions (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
-  token TEXT UNIQUE NOT NULL,
+  token_hash TEXT UNIQUE NOT NULL,
   role TEXT NOT NULL,
   expires_at TEXT NOT NULL,
   created_at TEXT,
+  last_used_at TEXT,
+  remember_me BOOLEAN DEFAULT 0,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -344,7 +346,7 @@ CREATE TABLE IF NOT EXISTS settings (
   updated_at TEXT
 );
 
--- 15. Media Usage Table (prevents deletion of in-use media)
+-- 15. Media Usage Table
 CREATE TABLE IF NOT EXISTS media_usage (
   id TEXT PRIMARY KEY,
   media_id TEXT NOT NULL,
