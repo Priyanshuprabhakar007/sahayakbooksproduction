@@ -145,14 +145,16 @@ export default {
         }
 
         const iterations = 100000;
-        const salt = crypto.getRandomValues(new Uint8Array(16));
-        const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
+        const saltBytes = crypto.getRandomValues(new Uint8Array(16));
+        const saltHex = Array.from(saltBytes)
+          .map(b => b.toString(16).padStart(2, '0'))
+          .join('');
         
         const encoder = new TextEncoder();
         const keyMaterial = await crypto.subtle.importKey('raw', encoder.encode(newPassword), { name: 'PBKDF2' }, false, ['deriveBits']);
         const derivedBits = await crypto.subtle.deriveBits({
           name: 'PBKDF2',
-          salt: salt,
+          salt: encoder.encode(saltHex),
           iterations: iterations,
           hash: 'SHA-512'
         }, keyMaterial, 512);
