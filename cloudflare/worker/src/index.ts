@@ -118,12 +118,30 @@ export default {
         return new Response(JSON.stringify({ success: true, user }), { headers: corsHeaders });
       }
 
-      if (path === '/api/admin/set-password' && request.method === 'POST') {
-        const { email, password } = await request.json<{email: string, password: string}>();
-        const user = await env.DB.prepare('SELECT id, password_hash FROM users WHERE email = ?').bind(email.toLowerCase().trim()).first<{id: string, password_hash: string}>();
+      if (path === '/api/auth/set-initial-password' && request.method === 'POST') {
+        const { email, newPassword, confirmPassword } = await request.json<{email: string, newPassword: string, confirmPassword: string}>();
         
-        if (!user || user.password_hash !== 'MIGRATION_RESET_REQUIRED') {
-          return new Response(JSON.stringify({ success: false, error: 'Unauthorized or already set' }), { status: 403, headers: corsHeaders });
+        if (!email || !newPassword || !confirmPassword) {
+            return new Response(JSON.stringify({ success: false, error: 'All fields are required' }), { status: 400, headers: corsHeaders });
+        }
+        if (newPassword !== confirmPassword) {
+            return new Response(JSON.stringify({ success: false, error: 'Passwords do not match' }), { status: 400, headers: corsHeaders });
+        }
+        if (newPassword.length < 8) {
+            return new Response(JSON.stringify({ success: false, error: 'Password must be at least 8 characters' }), { status: 400, headers: corsHeaders });
+        }
+
+        const normEmail = email.toLowerCase().trim();
+        const user = await env.DB.prepare('SELECT id, role, password_hash FROM users WHERE LOWER(email) = ?').bind(normEmail).first<{id: string, role: string, password_hash: string}>();
+        
+        if (!user) {
+            return new Response(JSON.stringify({ success: false, error: 'User not found' }), { status: 404, headers: corsHeaders });
+        }
+        if (!['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(user.role)) {
+            return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 403, headers: corsHeaders });
+        }
+        if (user.password_hash !== 'MIGRATION_RESET_REQUIRED') {
+          return new Response(JSON.stringify({ success: false, error: 'Password has already been initialized.' }), { status: 403, headers: corsHeaders });
         }
 
         const iterations = 100000;
@@ -131,7 +149,7 @@ export default {
         const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
         
         const encoder = new TextEncoder();
-        const keyMaterial = await crypto.subtle.importKey('raw', encoder.encode(password), { name: 'PBKDF2' }, false, ['deriveBits']);
+        const keyMaterial = await crypto.subtle.importKey('raw', encoder.encode(newPassword), { name: 'PBKDF2' }, false, ['deriveBits']);
         const derivedBits = await crypto.subtle.deriveBits({
           name: 'PBKDF2',
           salt: salt,
@@ -142,9 +160,9 @@ export default {
         const hash = Array.from(new Uint8Array(derivedBits)).map(b => b.toString(16).padStart(2, '0')).join('');
         const newHash = `pbkdf2$${iterations}$${saltHex}$${hash}`;
 
-        await env.DB.prepare('UPDATE users SET password_hash = ?, status = ? WHERE id = ?').bind(newHash, 'ACTIVE', user.id).run();
+        await env.DB.prepare('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?').bind(newHash, new Date().toISOString(), user.id).run();
         
-        return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+        return new Response(JSON.stringify({ success: true, message: 'Password successfully created.' }), { headers: corsHeaders });
       }
 
       if (path === '/api/auth/logout' && request.method === 'POST') {

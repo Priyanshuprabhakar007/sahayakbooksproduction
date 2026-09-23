@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useStore } from '../context/StoreContext';
 
 export const AdminSetPasswordView = () => {
   const [email, setEmail] = useState('');
@@ -7,13 +7,17 @@ export const AdminSetPasswordView = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const navigate = useNavigate();
+  const { navigate } = useStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match');
       return;
+    }
+    if (newPassword.length < 8) {
+        setError('Password must be at least 8 characters');
+        return;
     }
     
     try {
