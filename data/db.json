@@ -1,0 +1,1889 @@
+{
+  "books": [
+    {
+      "id": "book-2",
+      "slug": "dear-son-life-lessons-from-a-father",
+      "title": "Dear Son : Life Lessons from a Father",
+      "subtitle": "Life Lessons for Young Adults Entering Adulthood",
+      "authorId": "author-sandeep-sahni",
+      "authorName": "Sandeep Sahni",
+      "authorRole": "Founder & Managing Director, Sahayak Associates",
+      "price": 359,
+      "originalPrice": 399,
+      "discountPercent": 10,
+      "rating": 4.4,
+      "reviewCount": 48,
+      "category": "Family & Relationships / Personal Development",
+      "categorySlug": "family-relationships",
+      "formats": [
+        "Paperback"
+      ],
+      "coverImage": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-192900-2522ea.png",
+      "galleryImages": [
+        "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-192900-2522ea.png"
+      ],
+      "isFeatured": true,
+      "isBestseller": true,
+      "isNewRelease": true,
+      "publicationDate": "29 April 2021",
+      "publicationYear": 2021,
+      "pages": 294,
+      "isbn": "9781637815279",
+      "isbn13": "9781637815279",
+      "sku": "SB-DEAR-SON",
+      "language": "English",
+      "weight": "340 grams",
+      "dimensions": "14.0 x 1.8 x 21.6 cm",
+      "publisher": "Notion Press",
+      "edition": "1st Edition",
+      "description": "A heartfelt collection of life lessons from a father to his son, helping young adults navigate adulthood, goals, money, values, character, health, responsibility and personal growth.",
+      "aboutBook": [
+        "A heartfelt collection of life lessons from a father to his son, helping young adults navigate adulthood, goals, money, values, character, health, responsibility and personal growth.",
+        "Written by Sandeep Sahni, this book is designed as a special message from a father to his child, sharing practical guidance and insights to help the next generation step into adulthood with clarity and strength."
+      ],
+      "whatYouWillLearn": [
+        "21 chapters",
+        "Practical guidance for young adults",
+        "Life lessons from a father's experience",
+        "Covers dreams and goals",
+        "Money and financial awareness",
+        "Values and character",
+        "Health and personal development",
+        "Upskilling and career growth",
+        "Responsibility and decision-making",
+        "Suitable for young adults and parents"
+      ],
+      "tableOfContents": [
+        {
+          "chapter": 1,
+          "title": "Stepping Into the Real World",
+          "pages": "1 - 25"
+        },
+        {
+          "chapter": 2,
+          "title": "Dreams, Goals, and Ambitions",
+          "pages": "26 - 55"
+        },
+        {
+          "chapter": 3,
+          "title": "Understanding Financial Acumen",
+          "pages": "56 - 90"
+        },
+        {
+          "chapter": 4,
+          "title": "Constructing Character & Values",
+          "pages": "91 - 140"
+        },
+        {
+          "chapter": 5,
+          "title": "Health, Wellness, and Mental Fortitude",
+          "pages": "141 - 190"
+        },
+        {
+          "chapter": 6,
+          "title": "Decision Making and Adult Responsibility",
+          "pages": "191 - 294"
+        }
+      ],
+      "samplePages": [
+        {
+          "pageNumber": 1,
+          "chapterTitle": "Chapter 1: Stepping Into the Real World",
+          "title": "The Great Transition",
+          "content": [
+            "To my son, as you stand on the precipice of adulthood, the world before you holds immense promise and challenge.",
+            "These lessons are compiled to serve as an anchor for your decisions, a guide for your financial awareness, and a reminder of the character that defines true success."
+          ]
+        }
+      ],
+      "inStock": true,
+      "stockCount": 42,
+      "tags": [
+        "Young Adults",
+        "Personal Development",
+        "Life Lessons",
+        "Family",
+        "Father and Son",
+        "Notion Press"
+      ],
+      "frequentlyBoughtWithId": "book-1",
+      "metaTitle": "Dear Son : Life Lessons from a Father by Sandeep Sahni | Sahayak Associates",
+      "metaDescription": "Buy Dear Son : Life Lessons from a Father by Sandeep Sahni, a paperback featuring 21 chapters of heartfelt life lessons on goals, money, character, and personal growth.",
+      "backCoverImage": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-192918-3d9c60.png",
+      "updatedAt": "2026-09-02T13:11:08.365Z"
+    },
+    {
+      "id": "book-3",
+      "slug": "what-my-mba-did-not-teach-me-about-money",
+      "title": "What My MBA Did Not Teach Me About Money",
+      "subtitle": "The Human and Financial Perspective of Money, Finance, Markets, People, and Life",
+      "authorId": "author-sandeep-sahni",
+      "authorName": "Sanjit Singh Paul, Sandeep Sahni",
+      "authorRole": "Founder, Modulor Capital & Founder, Sahayak Associates",
+      "price": 436,
+      "originalPrice": 499,
+      "discountPercent": 13,
+      "rating": 4.6,
+      "reviewCount": 71,
+      "category": "Business & Finance / Investments & Securities",
+      "categorySlug": "business-finance",
+      "formats": [
+        "Paperback"
+      ],
+      "coverImage": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-174938-52ff8d.png",
+      "galleryImages": [
+        "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-174938-52ff8d.png"
+      ],
+      "isFeatured": true,
+      "isBestseller": true,
+      "isNewRelease": true,
+      "publicationDate": "September 2021",
+      "publicationYear": 2021,
+      "pages": 256,
+      "isbn": "9781637816509",
+      "isbn13": "9781637816509",
+      "sku": "SB-MBA-MONEY",
+      "language": "English",
+      "weight": "320 grams",
+      "dimensions": "14.0 x 1.6 x 21.5 cm",
+      "publisher": "Notion Press",
+      "edition": "1st Edition",
+      "description": "A practical exploration of the human and financial side of money, helping readers understand money beliefs, investing, financial biases, risk, budgeting and better financial decision-making.",
+      "aboutBook": [
+        "How we think about money can be very different from how we feel about it. While financial concepts may appear simple on paper, budgeting, financial conversations, risk calculation, investment discipline and wealth preservation can often be challenging.",
+        "What My MBA Did Not Teach Me About Money presents practical strategies around money beliefs, financial challenges, stock market investing, personal biases and financial vulnerability.",
+        "The ideas are based on the authors’ practical experiences and their work advising clients, with the aim of bridging the gap between the emotional human perspective and the analytical financial perspective of money."
+      ],
+      "whatYouWillLearn": [
+        "Understand your money beliefs",
+        "Learn practical personal finance strategies",
+        "Navigate stock markets more effectively",
+        "Identify and overcome financial biases",
+        "Understand risk and reward",
+        "Improve budgeting and investment discipline",
+        "Manage financial vulnerability",
+        "Bridge emotional and logical approaches to money"
+      ],
+      "tableOfContents": [
+        {
+          "chapter": 1,
+          "title": "Understanding Your Money Beliefs",
+          "pages": "1 - 32"
+        },
+        {
+          "chapter": 2,
+          "title": "Practical Personal Finance Strategies",
+          "pages": "33 - 68"
+        },
+        {
+          "chapter": 3,
+          "title": "Navigating Stock Markets Effectively",
+          "pages": "69 - 110"
+        },
+        {
+          "chapter": 4,
+          "title": "Identifying and Overcoming Financial Biases",
+          "pages": "111 - 150"
+        },
+        {
+          "chapter": 5,
+          "title": "Risk and Reward Dynamics",
+          "pages": "151 - 198"
+        },
+        {
+          "chapter": 6,
+          "title": "Budgeting & Investment Discipline",
+          "pages": "199 - 256"
+        }
+      ],
+      "samplePages": [
+        {
+          "pageNumber": 1,
+          "chapterTitle": "Chapter 1: Understanding Your Money Beliefs",
+          "title": "The Emotion Behind the Balance Sheet",
+          "content": [
+            "Money is rarely just about numbers. It is an emotional landscape shaped by upbringing, societal expectations, and core internal drivers.",
+            "Before we can master compound interest or asset allocation, we must first understand the narratives we tell ourselves about wealth, risk, and security."
+          ]
+        }
+      ],
+      "inStock": true,
+      "stockCount": 65,
+      "tags": [
+        "Investments",
+        "Finance",
+        "Personal Finance",
+        "Behavioral Economics",
+        "Money Management",
+        "Notion Press"
+      ],
+      "frequentlyBoughtWithId": "book-1",
+      "metaTitle": "What My MBA Did Not Teach Me About Money | Sanjit Singh Paul & Sandeep Sahni",
+      "metaDescription": "A profound exploration of money beliefs, investing, risk, and financial psychology. Buy the paperback edition by Sanjit Singh Paul & Sandeep Sahni.",
+      "seller": "Cocoblu Retail",
+      "fulfilledBy": "Amazon",
+      "delivery": "Free Delivery",
+      "replacement": "10 Days Replacement",
+      "payment": "Pay on Delivery / Secure Transaction",
+      "categoryBreadcrumb": "Books > Higher Education Textbooks > Business & Finance > Investments & Securities",
+      "backCoverImage": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-174952-93262f.png",
+      "updatedAt": "2026-09-02T13:11:55.354Z"
+    },
+    {
+      "id": "book-4",
+      "slug": "investment-dictionary-sandeep-sahni",
+      "title": "Investment Dictionary",
+      "subtitle": "Simple Guide to Investment & Financial Terms | SIP, Mutual Funds, Stocks, CAGR, XIRR & Wealth Concepts Explained",
+      "authorId": "author-sandeep-sahni",
+      "authorName": "Sandeep Sahni",
+      "authorRole": "Founder & Managing Director, Sahayak Associates",
+      "price": 449,
+      "originalPrice": 499,
+      "discountPercent": 10,
+      "rating": 5,
+      "reviewCount": 1,
+      "category": "Business & Economics / Investments & Personal Finance",
+      "categorySlug": "business-finance",
+      "formats": [
+        "Paperback"
+      ],
+      "coverImage": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-175140-8f7a50.png",
+      "galleryImages": [
+        "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-175140-8f7a50.png"
+      ],
+      "isFeatured": true,
+      "isBestseller": true,
+      "isNewRelease": true,
+      "publicationDate": "September 2021",
+      "publicationYear": 2021,
+      "pages": 192,
+      "isbn": "9781637816516",
+      "isbn13": "9781637816516",
+      "sku": "SB-INV-DICT",
+      "language": "English",
+      "weight": "240 grams",
+      "dimensions": "14.0 x 1.2 x 21.5 cm",
+      "publisher": "Notion Press",
+      "edition": "1st Edition",
+      "description": "A practical, beginner-friendly investment dictionary that explains commonly used financial and investment terms in simple language, helping readers understand personal finance, markets and wealth concepts with confidence.",
+      "aboutBook": [
+        "Investment Dictionary is a practical and beginner-friendly guide created to simplify the complex world of investments and personal finance.",
+        "The book explains commonly used financial terms and concepts in clear, easy-to-understand language, making it suitable for readers with little or no prior financial knowledge.",
+        "It covers essential topics such as SIP, Mutual Funds, Demat Accounts, CAGR, XIRR, ULIP, REIT, Alpha, Beta, Yield, Hedging and many other investment concepts.",
+        "Designed in a dictionary-style format, readers can quickly look up terms whenever they need clarity.",
+        "The book is useful for new investors, students, entrepreneurs, working professionals and anyone who wants to improve their financial literacy and build greater confidence in investment-related discussions."
+      ],
+      "whatYouWillLearn": [
+        "Beginner-friendly investment guide",
+        "Dictionary-style quick reference",
+        "SIP explained",
+        "Mutual Funds explained",
+        "Stocks and market concepts",
+        "CAGR and XIRR",
+        "Demat Accounts",
+        "ULIP and REIT",
+        "Alpha and Beta",
+        "Yield and Hedging",
+        "Personal finance terminology",
+        "Suitable for students, investors and professionals"
+      ],
+      "tableOfContents": [
+        {
+          "chapter": 1,
+          "title": "Introduction to Personal Finance & Dictionary Format",
+          "pages": "1 - 15"
+        },
+        {
+          "chapter": 2,
+          "title": "Core Investment Vehicles (SIP, Mutual Funds, Demat Accounts)",
+          "pages": "16 - 55"
+        },
+        {
+          "chapter": 3,
+          "title": "Key Financial Metrics (CAGR, XIRR, Yield)",
+          "pages": "56 - 90"
+        },
+        {
+          "chapter": 4,
+          "title": "Advanced Market Concepts (REIT, Alpha, Beta, Hedging)",
+          "pages": "91 - 145"
+        },
+        {
+          "chapter": 5,
+          "title": "A-to-Z Glossary of Terms",
+          "pages": "146 - 192"
+        }
+      ],
+      "samplePages": [
+        {
+          "pageNumber": 1,
+          "chapterTitle": "Chapter 1: Introduction to Personal Finance",
+          "title": "Demystifying the Language of Money",
+          "content": [
+            "Welcome to the Investment Dictionary. Finance is often shielded behind complex terminology, making it intimidating for beginners.",
+            "This dictionary bridges that gap, presenting terms like CAGR, SIP, and Yield in clear, everyday language with practical context."
+          ]
+        }
+      ],
+      "inStock": true,
+      "stockCount": 110,
+      "tags": [
+        "SIP",
+        "Mutual Funds",
+        "Stocks",
+        "CAGR",
+        "XIRR",
+        "Personal Finance",
+        "Notion Press"
+      ],
+      "frequentlyBoughtWithId": "book-1",
+      "metaTitle": "Investment Dictionary by Sandeep Sahni | SIP, Mutual Funds, Stocks, CAGR & XIRR",
+      "metaDescription": "Buy Investment Dictionary by Sandeep Sahni, a beginner-friendly guide explaining SIP, Mutual Funds, Stocks, CAGR, XIRR, Demat Accounts, REIT, Alpha, Beta, Yield, Hedging and other important investment concepts.",
+      "seller": "SAHAYAK ASSOCIATES",
+      "fulfilledBy": "Amazon",
+      "delivery": "Free Delivery",
+      "replacement": "10 Days Replacement",
+      "payment": "Secure Transaction",
+      "categoryBreadcrumb": "Books > Business & Economics > Analysis & Strategy",
+      "backCoverImage": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-175208-6c232d.png",
+      "spineImage": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-175241-1e4445.png",
+      "updatedAt": "2026-09-02T13:12:53.474Z"
+    },
+    {
+      "id": "book-1",
+      "title": "Heyy 18: What an 18 Year Old Should Know",
+      "subtitle": "52 Practical Life Lessons for Young Adults",
+      "slug": "heyy-18-what-an-18-year-old-should-know",
+      "authorId": "author-sandeep-sahni",
+      "authorName": "Sandeep Sahni",
+      "authorRole": "Founder & Managing Director, Sahayak Associates",
+      "publisher": "Sahayak Associates",
+      "publicationDate": "September 2026",
+      "publicationYear": 2026,
+      "edition": "1st Hardcover Edition",
+      "language": "English",
+      "isbn": "9789385500589",
+      "isbn10": "9385500589",
+      "isbn13": "9789385500589",
+      "sku": "SB-HEYY-18",
+      "category": "Young Adults",
+      "categorySlug": "young-adults",
+      "tags": [
+        "Young Adults",
+        "Personal Development",
+        "Life Lessons",
+        "Self Improvement",
+        "18 Year Old",
+        "Student Books",
+        "Gift Books",
+        "Sandeep Sahni"
+      ],
+      "price": 399,
+      "originalPrice": 499,
+      "discountPercent": 20,
+      "currency": "INR",
+      "inStock": true,
+      "stockCount": 95,
+      "stockStatus": "In Stock",
+      "status": "published",
+      "isFeatured": true,
+      "isBestseller": true,
+      "isNewRelease": false,
+      "badge": "Featured",
+      "formats": [
+        "Paperback",
+        "eBook"
+      ],
+      "coverImage": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-190232-b18b97.png",
+      "galleryImages": [
+        "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-190232-b18b97.png"
+      ],
+      "mockup3DImage": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-190232-b18b97.png",
+      "description": "Turning 18 is the beginning of a new chapter — a step into adulthood filled with greater freedom, new responsibilities, important choices and life-changing experiences.\n\n“Heyy 18: What an 18 Year Old Should Know” brings together 52 practical life lessons designed to guide young adults through one of the most important stages of life.\n\nWritten as a special message from a father to his child, the book explores essential ideas around character, discipline, relationships, responsibility, decision-making and personal growth.\n\nThoughtful, relatable and easy to read, the book encourages young readers to reflect on their values, understand their choices and approach adulthood with greater confidence, wisdom and purpose.",
+      "aboutBook": [
+        "Young adults turning 18",
+        "Students entering a new stage of life",
+        "Parents looking for a meaningful gift",
+        "Grandparents looking for a gift for young adults",
+        "Readers interested in personal development",
+        "Anyone beginning a journey toward independence and responsibility"
+      ],
+      "whatYouWillLearn": [
+        "52 practical life lessons",
+        "Personal growth and self-development",
+        "Character and discipline",
+        "Relationships",
+        "Responsibility",
+        "Decision-making",
+        "Preparing young adults for adulthood",
+        "Meaningful gift for an 18-year-old"
+      ],
+      "tableOfContents": [
+        {
+          "chapter": 1,
+          "title": "Introduction: Stepping Into Adulthood",
+          "pages": "1 - 15"
+        },
+        {
+          "chapter": 2,
+          "title": "The 52 Essential Life Lessons",
+          "pages": "16 - 150"
+        },
+        {
+          "chapter": 3,
+          "title": "Action Guide for Personal Growth",
+          "pages": "151 - 180"
+        }
+      ],
+      "samplePages": [
+        {
+          "pageNumber": 1,
+          "chapterTitle": "Chapter 1: Stepping Into Adulthood",
+          "title": "A Father’s Message",
+          "content": [
+            "Turning eighteen is not just a birthday; it is the opening of a profound new gateway.",
+            "With greater freedom comes the subtle but heavy responsibility of constructing your own character.",
+            "This book contains fifty-two practical reflections, one for each week of your transition, to anchor your choices in integrity and clear wisdom."
+          ]
+        }
+      ],
+      "pages": 240,
+      "rating": 4.8,
+      "reviewCount": 94,
+      "metaTitle": "Heyy 18: What an 18 Year Old Should Know by Sandeep Sahni | Sahayak Associates",
+      "metaDescription": "Buy Heyy 18: What an 18 Year Old Should Know by Sandeep Sahni, a paperback featuring 52 practical life lessons for young adults covering responsibility, relationships, discipline, decision-making and personal growth.",
+      "focusKeyword": "Heyy 18 book",
+      "backCoverImage": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-190217-1dc4de.png",
+      "updatedAt": "2026-09-02T13:12:22.696Z"
+    }
+  ],
+  "authors": [
+    {
+      "id": "author-sandeep-sahni",
+      "slug": "sandeep-sahni",
+      "name": "Sandeep Sahni",
+      "title": "Author & Founder, Sahayak Associates",
+      "avatar": "/sandeep_sahni.jpg?v=2",
+      "coverImage": "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=80",
+      "bio": "Sandeep Sahni is an author, financial educator, and founder of Sahayak Associates. He has dedicated his career to empowering readers with practical wisdom on personal finance, money management, character building, and life lessons for young adults.",
+      "qualifications": [
+        "Author of \"Heyy 18\", \"Dear Son\", and \"Investment Dictionary\"",
+        "Co-author of \"What My MBA Did Not Teach Me About Money\"",
+        "Founder & Managing Director, Sahayak Associates",
+        "Financial Educator & Youth Mentor"
+      ],
+      "expertise": [
+        "Personal Finance",
+        "Youth Mentorship",
+        "Money Management",
+        "Investment Concepts"
+      ],
+      "socialLinks": {
+        "twitter": "https://twitter.com/sahayakassoc",
+        "linkedin": "https://linkedin.com/company/sahayakassociates",
+        "website": "https://sahayakassociates.org",
+        "youtube": "https://youtube.com"
+      },
+      "publishedBookCount": 4,
+      "articlesCount": 48
+    },
+    {
+      "id": "author-sanjit-paul",
+      "slug": "sanjit-singh-paul",
+      "name": "Sanjit Singh Paul",
+      "title": "Founder & Managing Partner, Modulor Capital",
+      "avatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80",
+      "bio": "Sanjit Singh Paul is a SEBI Registered Investment Adviser, ISB alumnus, and co-author of \"What My MBA Did Not Teach Me About Money\".",
+      "qualifications": [
+        "MBA, Indian School of Business (ISB)",
+        "SEBI Registered Investment Adviser",
+        "Founder & Managing Partner, Modulor Capital"
+      ],
+      "expertise": [
+        "Investment Advisory",
+        "Behavioral Finance",
+        "Portfolio Strategy",
+        "Capital Allocation"
+      ],
+      "socialLinks": {
+        "linkedin": "https://linkedin.com"
+      },
+      "publishedBookCount": 1,
+      "articlesCount": 28
+    }
+  ],
+  "categories": [
+    {
+      "id": "cat-personal-finance",
+      "slug": "personal-finance",
+      "name": "Personal Finance",
+      "description": "Practical guides to budgeting, saving, building emergency funds, and managing money wisely.",
+      "iconName": "TrendingUp",
+      "bookCount": 2,
+      "coverImage": "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "cat-financial-education",
+      "slug": "financial-education",
+      "name": "Financial Education",
+      "description": "Demystifying investment vehicles, SIPs, mutual funds, stocks, CAGR, and financial jargon.",
+      "iconName": "BookOpen",
+      "bookCount": 2,
+      "coverImage": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "cat-money-management",
+      "slug": "money-management",
+      "name": "Money Management",
+      "description": "Understanding emotional money beliefs, financial biases, and disciplined wealth building.",
+      "iconName": "ShieldCheck",
+      "bookCount": 1,
+      "coverImage": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "cat-investment-education",
+      "slug": "investment-education",
+      "name": "Investment Education",
+      "description": "Clear explanations of stocks, Demat accounts, risk management, and market fundamentals.",
+      "iconName": "TrendingUp",
+      "bookCount": 1,
+      "coverImage": "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "cat-life-lessons",
+      "slug": "life-lessons",
+      "name": "Life Lessons",
+      "description": "Heartfelt wisdom on stepping into adulthood, building character, values, and decision-making.",
+      "iconName": "Compass",
+      "bookCount": 2,
+      "coverImage": "https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "cat-young-adults",
+      "slug": "young-adults",
+      "name": "Young Adults",
+      "description": "Essential guidance for 18-year-olds and college students navigating life, career, and money.",
+      "iconName": "Users",
+      "bookCount": 2,
+      "coverImage": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "cat-career-life",
+      "slug": "career-life",
+      "name": "Career & Life",
+      "description": "Developing professional skills, goal setting, emotional resilience, and lifelong growth.",
+      "iconName": "Award",
+      "bookCount": 1,
+      "coverImage": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "cat-self-development",
+      "slug": "self-development",
+      "name": "Self Development",
+      "description": "Cultivating strong habits, mental clarity, focus, and deliberate personal growth.",
+      "iconName": "Compass",
+      "bookCount": 1,
+      "coverImage": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "cat-parenting-family",
+      "slug": "parenting-family",
+      "name": "Parenting / Family Lessons",
+      "description": "Guiding the next generation, nurturing parent-child bonds, and passing down values.",
+      "iconName": "Heart",
+      "bookCount": 1,
+      "coverImage": "https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=600&q=80"
+    },
+    {
+      "id": "cat-financial-literacy",
+      "slug": "financial-literacy",
+      "name": "Financial Literacy",
+      "description": "Foundational money concepts made simple and accessible for everyone.",
+      "iconName": "BookOpen",
+      "bookCount": 2,
+      "coverImage": "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=600&q=80"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "rev-1",
+      "bookId": "book-1",
+      "bookTitle": "The Art of Strategic Governance",
+      "userName": "Rajeev Chandrashekhar, IAS",
+      "userAvatar": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+      "rating": 5,
+      "title": "A landmark book for every civil servant in India",
+      "comment": "Dr. Sahayak has written what will certainly become the gold-standard reference for administrative governance. The chapters on crisis command and institutional audit are breathtakingly practical and ethically grounded.",
+      "date": "February 12, 2026",
+      "verifiedPurchase": true,
+      "approved": true,
+      "featured": true
+    },
+    {
+      "id": "rev-2",
+      "bookId": "book-1",
+      "bookTitle": "The Art of Strategic Governance",
+      "userName": "Prof. Suniti Deshmukh",
+      "userAvatar": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
+      "rating": 5,
+      "title": "Impeccable academic rigor combined with real-world wisdom",
+      "comment": "We have already adopted this text into our Master of Public Policy syllabus at the National Law School. The book quality, hardcover binding, and gold foil typography make it a joy to own.",
+      "date": "January 28, 2026",
+      "verifiedPurchase": true,
+      "approved": true,
+      "featured": true
+    },
+    {
+      "id": "rev-3",
+      "bookId": "book-2",
+      "bookTitle": "Dear Son : Life Lessons from a Father",
+      "userName": "Karan Malhotra",
+      "userAvatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
+      "rating": 5,
+      "title": "Incredibly touching and deeply practical",
+      "comment": "This book has been a guiding light for my journey into adulthood. The lessons on financial awareness, goals, and values are written so beautifully and practically.",
+      "date": "May 15, 2021",
+      "verifiedPurchase": true,
+      "approved": true,
+      "featured": true
+    },
+    {
+      "id": "rev-4",
+      "bookId": "book-4",
+      "bookTitle": "Investment Dictionary",
+      "userName": "Anjali Gupta (MBA Student)",
+      "userAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+      "rating": 5,
+      "title": "The easiest guide to understand financial jargon!",
+      "comment": "As a business student, CAGR and XIRR used to confuse me on spreadsheets. This dictionary explains them with amazing simplicity. A must-have desk reference!",
+      "date": "December 4, 2021",
+      "verifiedPurchase": true,
+      "approved": true,
+      "featured": true
+    },
+    {
+      "id": "rev-5",
+      "bookId": "book-3",
+      "bookTitle": "What My MBA Did Not Teach Me About Money",
+      "userName": "Siddharth Mukherjee (Wealth Consultant)",
+      "userAvatar": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80",
+      "rating": 5,
+      "title": "Exceptional blend of behavioral psychology and practical finance",
+      "comment": "Sanjit Singh Paul and Sandeep Sahni provide unmatched clarity on how money beliefs govern our investing decisions. Essential reading for anyone who wants to conquer their financial biases.",
+      "date": "October 12, 2021",
+      "verifiedPurchase": true,
+      "approved": true,
+      "featured": true
+    }
+  ],
+  "blogs": [
+    {
+      "id": "blog-1",
+      "slug": "the-future-of-constitutional-jurisprudence-in-the-ai-era",
+      "title": "The Future of Constitutional Jurisprudence in the AI Era",
+      "excerpt": "How algorithms and predictive decision systems are challenging foundational principles of natural justice and administrative transparency.",
+      "content": [
+        "As machine intelligence penetrates judicial drafting, credit scoring, and municipal resource allocation, the bedrock legal doctrine of Audi Alteram Partem (listen to the other side) faces an unprecedented test.",
+        "When an opaque neural network generates a determination affecting citizen liberty or corporate licensing, who bears the burden of explainability? Our latest research at Sahayak Associates establishes three critical legal standards for algorithmic accountability.",
+        "First, no administrative order may be enforced without human supervisory sign-off. Second, the training data provenance must be accessible during judicial review. Third, algorithmic bias audits must be made mandatory across public governance portfolios."
+      ],
+      "category": "Law & Jurisprudence",
+      "tags": [
+        "AI Law",
+        "Constitutional Rights",
+        "Legal Ethics",
+        "Sahayak Research"
+      ],
+      "author": "Adv. Meenakshi Sundaram",
+      "authorRole": "Senior Advocate & Legal Scholar",
+      "authorAvatar": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
+      "publishDate": "February 14, 2026",
+      "readTime": "6 min read",
+      "featuredImage": "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=1200&q=80",
+      "seoTitle": "Constitutional Jurisprudence in the AI Era | Sahayak Books",
+      "metaDescription": "Explore the intersection of machine learning and constitutional rights by Adv. Meenakshi Sundaram."
+    },
+    {
+      "id": "blog-2",
+      "slug": "deconstructing-monetary-policy-transmission-in-emerging-markets",
+      "title": "Deconstructing Monetary Policy Transmission in Emerging Markets",
+      "excerpt": "An empirical analysis of how repo rate adjustments influence commercial lending rates and capital investment velocity.",
+      "content": [
+        "The conventional textbook view assumes an instant pass-through from central bank policy rates to commercial banking loan books. In reality, structural liquidity friction, statutory liquidity ratios, and asset-liability mismatches create substantial transmission lag.",
+        "In this detailed commentary, Dr. Rajeshwar Sen examines why traditional fiscal levers behave differently in emerging economic corridors and how corporate treasuries can hedge interest rate volatility proactively."
+      ],
+      "category": "Finance & Economics",
+      "tags": [
+        "Macroeconomics",
+        "Monetary Policy",
+        "Banking",
+        "Capital Markets"
+      ],
+      "author": "Dr. Rajeshwar Sen",
+      "authorRole": "Chief Economist, Sahayak Research",
+      "authorAvatar": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
+      "publishDate": "January 30, 2026",
+      "readTime": "8 min read",
+      "featuredImage": "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?auto=format&fit=crop&w=1200&q=80",
+      "seoTitle": "Monetary Policy Transmission in Emerging Markets | Sahayak Insights",
+      "metaDescription": "Dr. Rajeshwar Sen on central banking transmission and macro volatility."
+    },
+    {
+      "id": "blog-3",
+      "slug": "mastering-the-art-of-high-stakes-negotiation-and-calm-authority",
+      "title": "Mastering the Art of High-Stakes Negotiation & Calm Authority",
+      "excerpt": "Why the most powerful negotiator in the room is often the one who speaks least, listens deeply, and controls internal arousal levels.",
+      "content": [
+        "Negotiation is fundamentally an exercise in emotional regulation. When billions of rupees or key policy covenants hang in the balance, amateur negotiators rely on aggressive rhetoric or artificial urgency.",
+        "Master negotiators, by contrast, practice the art of strategic silence, precision paraphrasing, and asymmetrical value concession. Learn the 4-phase preparation framework taught at Sahayak Associates Executive Retreats."
+      ],
+      "category": "Leadership & Governance",
+      "tags": [
+        "Negotiation",
+        "Executive Presence",
+        "Leadership",
+        "Mindset"
+      ],
+      "author": "Priya Malhotra",
+      "authorRole": "Behavioral Scientist & Executive Coach",
+      "authorAvatar": "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80",
+      "publishDate": "January 18, 2026",
+      "readTime": "5 min read",
+      "featuredImage": "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1200&q=80",
+      "seoTitle": "Mastering High-Stakes Negotiation | Sahayak Books",
+      "metaDescription": "Executive coach Priya Malhotra on calmness, authority, and negotiation mastery."
+    }
+  ],
+  "coupons": [
+    {
+      "id": "coup-1",
+      "code": "SAHAYAK10",
+      "discountType": "percentage",
+      "discountValue": 10,
+      "minOrder": 500,
+      "expiryDate": "2026-12-31",
+      "usageLimit": 1000,
+      "usedCount": 142,
+      "isActive": true
+    },
+    {
+      "id": "coup-2",
+      "code": "WELCOME20",
+      "discountType": "percentage",
+      "discountValue": 20,
+      "minOrder": 1000,
+      "expiryDate": "2026-12-31",
+      "usageLimit": 500,
+      "usedCount": 89,
+      "isActive": true
+    },
+    {
+      "id": "coup-3",
+      "code": "SCHOLAR150",
+      "discountType": "fixed",
+      "discountValue": 150,
+      "minOrder": 800,
+      "expiryDate": "2026-12-31",
+      "usageLimit": 300,
+      "usedCount": 45,
+      "isActive": true
+    }
+  ],
+  "settings": {
+    "brandName": "Sahayak Books",
+    "tagline": "Knowledge That Moves You Forward",
+    "parentCompany": "Sahayak Associates",
+    "mainLogo": "",
+    "darkLogo": "",
+    "lightLogo": "",
+    "mobileLogo": "",
+    "footerLogo": "",
+    "socialShareLogo": "",
+    "favicon": "",
+    "heroHeading": "Books That Inform. Ideas That Inspire.",
+    "heroSubheading": "Discover thoughtfully written books from Sahayak Associates designed to educate, guide, and inspire readers across governance, law, economics, and leadership.",
+    "heroPrimaryBtnText": "Explore Books",
+    "heroSecondaryBtnText": "View Bestsellers",
+    "featuredEditorialBookId": "book-1",
+    "whatsappNumber": "+919876543210",
+    "contactEmail": "contact@sahayakassociates.org",
+    "contactPhone": "+91 (011) 4567 8900",
+    "officeAddress": "Sahayak Knowledge Tower, 14 Barakhamba Road, Connaught Place, New Delhi - 110001, India",
+    "businessHours": "Monday – Saturday: 9:00 AM – 6:30 PM IST",
+    "defaultCurrency": "INR",
+    "timezone": "Asia/Kolkata (IST)",
+    "showPrices": true,
+    "showReviews": true,
+    "enableWishlist": true,
+    "enableBookPreview": true,
+    "enableInternalCheckout": true,
+    "showStock": true,
+    "enableExternalPurchaseLinks": true,
+    "enableBulkOrders": true,
+    "lowStockThreshold": 10,
+    "freeShippingThreshold": 999,
+    "shippingCharge": 60,
+    "enabledPaymentMethods": {
+      "UPI": true,
+      "Credit Card": true,
+      "Debit Card": true,
+      "Net Banking": true,
+      "Wallets": true,
+      "Cash on Delivery": true
+    },
+    "announcementBarText": "✨ Complimentary nationwide express shipping on all orders above ₹999 | Use code SAHAYAK10 for 10% off",
+    "announcementBarEnabled": true,
+    "homeSections": [
+      {
+        "id": "hero",
+        "label": "Interactive 3D Hero Section",
+        "enabled": true,
+        "order": 1
+      },
+      {
+        "id": "featured-books",
+        "label": "Featured Books Showcase",
+        "enabled": true,
+        "order": 2
+      },
+      {
+        "id": "categories",
+        "label": "Shop by Category",
+        "enabled": true,
+        "order": 3
+      },
+      {
+        "id": "bestsellers",
+        "label": "Bestsellers Carousel",
+        "enabled": true,
+        "order": 4
+      },
+      {
+        "id": "new-releases",
+        "label": "New Releases Grid",
+        "enabled": true,
+        "order": 5
+      },
+      {
+        "id": "editorial-spotlight",
+        "label": "Featured Editorial Book Spotlight",
+        "enabled": true,
+        "order": 6
+      },
+      {
+        "id": "why-read",
+        "label": "Why Read Sahayak Books",
+        "enabled": true,
+        "order": 7
+      },
+      {
+        "id": "authors",
+        "label": "Author Spotlight",
+        "enabled": true,
+        "order": 8
+      },
+      {
+        "id": "reviews",
+        "label": "Reader Testimonials & Reviews",
+        "enabled": true,
+        "order": 9
+      },
+      {
+        "id": "blogs",
+        "label": "Insights & Knowledge Articles",
+        "enabled": true,
+        "order": 10
+      },
+      {
+        "id": "newsletter",
+        "label": "Newsletter Subscription",
+        "enabled": true,
+        "order": 11
+      }
+    ],
+    "themePrimaryColor": "#0B192C",
+    "themeSecondaryColor": "#1E3E62",
+    "themeAccentColor": "#C5A059",
+    "buttonRadius": "rounded-xl",
+    "cardRadius": "rounded-2xl",
+    "pagesContent": {
+      "heroHeading": "Books That Inform. Ideas That Inspire.",
+      "heroSubheading": "Discover thoughtfully written books from Sahayak Associates designed to educate, guide, and inspire readers across governance, law, economics, and leadership.",
+      "heroPrimaryBtnText": "Explore All Publications",
+      "heroSecondaryBtnText": "Meet Distinguished Authors",
+      "featuredBooksHeading": "Curated Academic & Professional Imprints",
+      "featuredBooksSubheading": "Distinguished works rigorously peer-reviewed and recommended by leading jurists, economists, and civil service mentors.",
+      "aboutSectionHeading": "A Citadel of Practical Jurisprudence & Governance Thought",
+      "aboutSectionText": "Founded on the principles of rigorous scholarship, clarity of expression, and profound dedication to institutional governance, Sahayak Associates has stood at the intersection of scholarly inquiry and real-world policy advisory.",
+      "founderName": "Sandeep Sahni",
+      "founderRole": "Founder & Managing Director",
+      "founderBio": "Leading the vision of Sahayak Associates to bring actionable, peer-reviewed knowledge to aspiring professionals, legal practitioners, and scholars.",
+      "founderQuote": "Knowledge without practical execution is merely philosophical; our endeavor is to turn profound publications into actionable engines of progress.",
+      "contactHeading": "Advisory Desk & Editorial Inquiries",
+      "contactSubtext": "Connect with our publishing editors, institutional procurement desk, or research scholars.",
+      "footerTagline": "Authoritative publications, legal compendiums, and executive books published by Sahayak Associates."
+    }
+  },
+  "mediaItems": [
+    {
+      "id": "med-1788354804845",
+      "createdAt": "2026-09-02T13:12:52.534Z",
+      "name": "screenshot 2026 09 02 175241",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-175241-1e4445.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-175241-1e4445.png",
+      "fileName": "20260902-screenshot-2026-09-02-175241-1e4445.png",
+      "originalFileName": "Screenshot 2026-09-02 175241.png",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-02-175241-1e4445.png",
+      "folder": "Books",
+      "size": "691.8 KB",
+      "fileSize": "691.8 KB",
+      "dimensions": "490x740",
+      "width": 490,
+      "height": 740,
+      "mimeType": "image/png",
+      "storageProvider": "cloudflare-r2",
+      "altText": "Book Spine Artwork (Optional)",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354772146-571d",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-02-175241-1e4445.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-175241-1e4445.png",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-175241-1e4445.png",
+      "name": "screenshot 2026 09 02 175241",
+      "fileName": "20260902-screenshot-2026-09-02-175241-1e4445.png",
+      "originalFileName": "Screenshot 2026-09-02 175241.png",
+      "mimeType": "image/png",
+      "size": "691.8 KB",
+      "fileSizeBytes": 708375,
+      "folder": "books",
+      "storageProvider": "cloudflare-r2",
+      "createdAt": "2026-09-02T13:12:52.146Z",
+      "altText": "Book Spine Artwork (Optional)",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354795210",
+      "createdAt": "2026-09-02T13:12:42.904Z",
+      "name": "screenshot 2026 09 02 175208",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-175208-6c232d.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-175208-6c232d.png",
+      "fileName": "20260902-screenshot-2026-09-02-175208-6c232d.png",
+      "originalFileName": "Screenshot 2026-09-02 175208.png",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-02-175208-6c232d.png",
+      "folder": "Books",
+      "size": "1.08 MB",
+      "fileSize": "1.08 MB",
+      "dimensions": "1030x736",
+      "width": 1030,
+      "height": 736,
+      "mimeType": "image/png",
+      "storageProvider": "cloudflare-r2",
+      "altText": "Back Cover Artwork (Optional)",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354762691-d73d",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-02-175208-6c232d.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-175208-6c232d.png",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-175208-6c232d.png",
+      "name": "screenshot 2026 09 02 175208",
+      "fileName": "20260902-screenshot-2026-09-02-175208-6c232d.png",
+      "originalFileName": "Screenshot 2026-09-02 175208.png",
+      "mimeType": "image/png",
+      "size": "1.08 MB",
+      "fileSizeBytes": 1135335,
+      "folder": "books",
+      "storageProvider": "cloudflare-r2",
+      "createdAt": "2026-09-02T13:12:42.691Z",
+      "altText": "Back Cover Artwork (Optional)",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354787040",
+      "createdAt": "2026-09-02T13:12:34.730Z",
+      "name": "screenshot 2026 09 02 175140",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-175140-8f7a50.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-175140-8f7a50.png",
+      "fileName": "20260902-screenshot-2026-09-02-175140-8f7a50.png",
+      "originalFileName": "Screenshot 2026-09-02 175140.png",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-02-175140-8f7a50.png",
+      "folder": "Books",
+      "size": "370.9 KB",
+      "fileSize": "370.9 KB",
+      "dimensions": "493x740",
+      "width": 493,
+      "height": 740,
+      "mimeType": "image/png",
+      "storageProvider": "cloudflare-r2",
+      "altText": "Book Front Cover Artwork",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354754305-2ce1",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-02-175140-8f7a50.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-175140-8f7a50.png",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-175140-8f7a50.png",
+      "name": "screenshot 2026 09 02 175140",
+      "fileName": "20260902-screenshot-2026-09-02-175140-8f7a50.png",
+      "originalFileName": "Screenshot 2026-09-02 175140.png",
+      "mimeType": "image/png",
+      "size": "370.9 KB",
+      "fileSizeBytes": 379824,
+      "folder": "books",
+      "storageProvider": "cloudflare-r2",
+      "createdAt": "2026-09-02T13:12:34.305Z",
+      "altText": "Book Front Cover Artwork",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354773786",
+      "createdAt": "2026-09-02T13:12:21.475Z",
+      "name": "screenshot 2026 09 01 190217",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-190217-1dc4de.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-190217-1dc4de.png",
+      "fileName": "20260902-screenshot-2026-09-01-190217-1dc4de.png",
+      "originalFileName": "Screenshot 2026-09-01 190217.png",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-01-190217-1dc4de.png",
+      "folder": "Books",
+      "size": "648.6 KB",
+      "fileSize": "648.6 KB",
+      "dimensions": "761x741",
+      "width": 761,
+      "height": 741,
+      "mimeType": "image/png",
+      "storageProvider": "cloudflare-r2",
+      "altText": "Back Cover Artwork (Optional)",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354741270-4132",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-01-190217-1dc4de.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-190217-1dc4de.png",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-190217-1dc4de.png",
+      "name": "screenshot 2026 09 01 190217",
+      "fileName": "20260902-screenshot-2026-09-01-190217-1dc4de.png",
+      "originalFileName": "Screenshot 2026-09-01 190217.png",
+      "mimeType": "image/png",
+      "size": "648.6 KB",
+      "fileSizeBytes": 664176,
+      "folder": "books",
+      "storageProvider": "cloudflare-r2",
+      "createdAt": "2026-09-02T13:12:21.271Z",
+      "altText": "Back Cover Artwork (Optional)",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354767093",
+      "createdAt": "2026-09-02T13:12:14.784Z",
+      "name": "screenshot 2026 09 01 190232",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-190232-b18b97.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-190232-b18b97.png",
+      "fileName": "20260902-screenshot-2026-09-01-190232-b18b97.png",
+      "originalFileName": "Screenshot 2026-09-01 190232.png",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-01-190232-b18b97.png",
+      "folder": "Books",
+      "size": "985.3 KB",
+      "fileSize": "985.3 KB",
+      "dimensions": "751x739",
+      "width": 751,
+      "height": 739,
+      "mimeType": "image/png",
+      "storageProvider": "cloudflare-r2",
+      "altText": "Book Front Cover Artwork",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354734355-eb4e",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-01-190232-b18b97.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-190232-b18b97.png",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-190232-b18b97.png",
+      "name": "screenshot 2026 09 01 190232",
+      "fileName": "20260902-screenshot-2026-09-01-190232-b18b97.png",
+      "originalFileName": "Screenshot 2026-09-01 190232.png",
+      "mimeType": "image/png",
+      "size": "985.3 KB",
+      "fileSizeBytes": 1008938,
+      "folder": "books",
+      "storageProvider": "cloudflare-r2",
+      "createdAt": "2026-09-02T13:12:14.355Z",
+      "altText": "Book Front Cover Artwork",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354744771",
+      "createdAt": "2026-09-02T13:11:52.463Z",
+      "name": "screenshot 2026 09 02 174952",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-174952-93262f.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-174952-93262f.png",
+      "fileName": "20260902-screenshot-2026-09-02-174952-93262f.png",
+      "originalFileName": "Screenshot 2026-09-02 174952.png",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-02-174952-93262f.png",
+      "folder": "Books",
+      "size": "279.6 KB",
+      "fileSize": "279.6 KB",
+      "dimensions": "521x744",
+      "width": 521,
+      "height": 744,
+      "mimeType": "image/png",
+      "storageProvider": "cloudflare-r2",
+      "altText": "Back Cover Artwork (Optional)",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354712031-2db4",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-02-174952-93262f.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-174952-93262f.png",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-174952-93262f.png",
+      "name": "screenshot 2026 09 02 174952",
+      "fileName": "20260902-screenshot-2026-09-02-174952-93262f.png",
+      "originalFileName": "Screenshot 2026-09-02 174952.png",
+      "mimeType": "image/png",
+      "size": "279.6 KB",
+      "fileSizeBytes": 286311,
+      "folder": "books",
+      "storageProvider": "cloudflare-r2",
+      "createdAt": "2026-09-02T13:11:52.031Z",
+      "altText": "Back Cover Artwork (Optional)",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354727263",
+      "createdAt": "2026-09-02T13:11:34.955Z",
+      "name": "screenshot 2026 09 01 190217",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-190217-a32f99.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-190217-a32f99.png",
+      "fileName": "20260902-screenshot-2026-09-01-190217-a32f99.png",
+      "originalFileName": "Screenshot 2026-09-01 190217.png",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-01-190217-a32f99.png",
+      "folder": "Books",
+      "size": "648.6 KB",
+      "fileSize": "648.6 KB",
+      "dimensions": "761x741",
+      "width": 761,
+      "height": 741,
+      "mimeType": "image/png",
+      "storageProvider": "cloudflare-r2",
+      "altText": "Back Cover Artwork (Optional)",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354694527-a939",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-01-190217-a32f99.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-190217-a32f99.png",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-190217-a32f99.png",
+      "name": "screenshot 2026 09 01 190217",
+      "fileName": "20260902-screenshot-2026-09-01-190217-a32f99.png",
+      "originalFileName": "Screenshot 2026-09-01 190217.png",
+      "mimeType": "image/png",
+      "size": "648.6 KB",
+      "fileSizeBytes": 664176,
+      "folder": "books",
+      "storageProvider": "cloudflare-r2",
+      "createdAt": "2026-09-02T13:11:34.527Z",
+      "altText": "Back Cover Artwork (Optional)",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354720546",
+      "createdAt": "2026-09-02T13:11:28.234Z",
+      "name": "screenshot 2026 09 02 174938",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-174938-52ff8d.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-174938-52ff8d.png",
+      "fileName": "20260902-screenshot-2026-09-02-174938-52ff8d.png",
+      "originalFileName": "Screenshot 2026-09-02 174938.png",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-02-174938-52ff8d.png",
+      "folder": "Books",
+      "size": "431.2 KB",
+      "fileSize": "431.2 KB",
+      "dimensions": "480x743",
+      "width": 480,
+      "height": 743,
+      "mimeType": "image/png",
+      "storageProvider": "cloudflare-r2",
+      "altText": "Book Front Cover Artwork",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354687847-b1bb",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-02-174938-52ff8d.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-174938-52ff8d.png",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-174938-52ff8d.png",
+      "name": "screenshot 2026 09 02 174938",
+      "fileName": "20260902-screenshot-2026-09-02-174938-52ff8d.png",
+      "originalFileName": "Screenshot 2026-09-02 174938.png",
+      "mimeType": "image/png",
+      "size": "431.2 KB",
+      "fileSizeBytes": 441574,
+      "folder": "books",
+      "storageProvider": "cloudflare-r2",
+      "createdAt": "2026-09-02T13:11:27.848Z",
+      "altText": "Book Front Cover Artwork",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354697532",
+      "createdAt": "2026-09-02T13:11:05.224Z",
+      "name": "screenshot 2026 09 01 192900",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-192900-2522ea.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-192900-2522ea.png",
+      "fileName": "20260902-screenshot-2026-09-01-192900-2522ea.png",
+      "originalFileName": "Screenshot 2026-09-01 192900.png",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-01-192900-2522ea.png",
+      "folder": "Books",
+      "size": "536.4 KB",
+      "fileSize": "536.4 KB",
+      "dimensions": "492x736",
+      "width": 492,
+      "height": 736,
+      "mimeType": "image/png",
+      "storageProvider": "cloudflare-r2",
+      "altText": "Book Front Cover Artwork",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354664793-c175",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-01-192900-2522ea.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-192900-2522ea.png",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-192900-2522ea.png",
+      "name": "screenshot 2026 09 01 192900",
+      "fileName": "20260902-screenshot-2026-09-01-192900-2522ea.png",
+      "originalFileName": "Screenshot 2026-09-01 192900.png",
+      "mimeType": "image/png",
+      "size": "536.4 KB",
+      "fileSizeBytes": 549275,
+      "folder": "books",
+      "storageProvider": "cloudflare-r2",
+      "createdAt": "2026-09-02T13:11:04.793Z",
+      "altText": "Book Front Cover Artwork",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354689258",
+      "createdAt": "2026-09-02T13:10:56.947Z",
+      "name": "screenshot 2026 09 01 192918",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-192918-3d9c60.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-192918-3d9c60.png",
+      "fileName": "20260902-screenshot-2026-09-01-192918-3d9c60.png",
+      "originalFileName": "Screenshot 2026-09-01 192918.png",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-01-192918-3d9c60.png",
+      "folder": "Books",
+      "size": "561.5 KB",
+      "fileSize": "561.5 KB",
+      "dimensions": "486x739",
+      "width": 486,
+      "height": 739,
+      "mimeType": "image/png",
+      "storageProvider": "cloudflare-r2",
+      "altText": "Back Cover Artwork (Optional)",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354656526-4daf",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-01-192918-3d9c60.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-192918-3d9c60.png",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-192918-3d9c60.png",
+      "name": "screenshot 2026 09 01 192918",
+      "fileName": "20260902-screenshot-2026-09-01-192918-3d9c60.png",
+      "originalFileName": "Screenshot 2026-09-01 192918.png",
+      "mimeType": "image/png",
+      "size": "561.5 KB",
+      "fileSizeBytes": 574992,
+      "folder": "books",
+      "storageProvider": "cloudflare-r2",
+      "createdAt": "2026-09-02T13:10:56.526Z",
+      "altText": "Back Cover Artwork (Optional)",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354687021",
+      "createdAt": "2026-09-02T13:10:54.714Z",
+      "name": "screenshot 2026 09 01 192900",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-192900-565a57.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-192900-565a57.png",
+      "fileName": "20260902-screenshot-2026-09-01-192900-565a57.png",
+      "originalFileName": "Screenshot 2026-09-01 192900.png",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-01-192900-565a57.png",
+      "folder": "Books",
+      "size": "536.4 KB",
+      "fileSize": "536.4 KB",
+      "dimensions": "492x736",
+      "width": 492,
+      "height": 736,
+      "mimeType": "image/png",
+      "storageProvider": "cloudflare-r2",
+      "altText": "Book Front Cover Artwork",
+      "caption": "",
+      "date": "2026-09-02"
+    },
+    {
+      "id": "med-1788354654268-ce13",
+      "objectKey": "sahayak/books/20260902-screenshot-2026-09-01-192900-565a57.png",
+      "publicUrl": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-192900-565a57.png",
+      "url": "https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-192900-565a57.png",
+      "name": "screenshot 2026 09 01 192900",
+      "fileName": "20260902-screenshot-2026-09-01-192900-565a57.png",
+      "originalFileName": "Screenshot 2026-09-01 192900.png",
+      "mimeType": "image/png",
+      "size": "536.4 KB",
+      "fileSizeBytes": 549275,
+      "folder": "books",
+      "storageProvider": "cloudflare-r2",
+      "createdAt": "2026-09-02T13:10:54.268Z",
+      "altText": "Book Front Cover Artwork",
+      "caption": "",
+      "date": "2026-09-02"
+    }
+  ],
+  "leads": [
+    {
+      "id": "lead-1",
+      "name": "Rajiv Mehra",
+      "email": "rajiv.mehra@bharatpetro.in",
+      "phone": "+91 98201 44556",
+      "subject": "Bulk Procurement for Management Training Program",
+      "interest": "Bulk Orders",
+      "company": "Bharat Petroleum Corp.",
+      "quantity": 250,
+      "city": "Mumbai",
+      "bookId": "book-1",
+      "bookTitle": "The Art of Strategic Governance",
+      "message": "We wish to order 250 hardcover copies of Dr. Arvind Sahayak's book for our upcoming leadership induction retreat in Goa. Kindly share corporate discount invoice.",
+      "date": "2026-02-28",
+      "status": "Qualified",
+      "sourcePage": "/books/the-art-of-strategic-governance"
+    },
+    {
+      "id": "lead-2",
+      "name": "Prof. Ananya Sen",
+      "email": "ananya.sen@nludelhi.ac.in",
+      "phone": "+91 98102 77889",
+      "subject": "Institutional Syllabus Adoption & Library Requisition",
+      "interest": "Educational Sessions",
+      "company": "National Law University",
+      "quantity": 120,
+      "city": "New Delhi",
+      "bookId": "book-2",
+      "bookTitle": "Dear Son : Life Lessons from a Father",
+      "message": "Inquiring about institutional bulk procurement of \"Dear Son\" for incoming young adults freshman orientation sessions.",
+      "date": "2026-03-01",
+      "status": "New",
+      "sourcePage": "/contact"
+    }
+  ],
+  "allUsers": [
+    {
+      "id": "usr-admin-1",
+      "name": "Sandeep Sahni",
+      "email": "admin@sahayakassociates.org",
+      "phone": "+91 98765 43210",
+      "role": "SUPER_ADMIN",
+      "status": "active",
+      "registrationDate": "2025-01-01",
+      "lastLogin": "Just now",
+      "addresses": [],
+      "wishlist": [],
+      "orderIds": [],
+      "savedEbooks": []
+    },
+    {
+      "id": "usr-editor-1",
+      "name": "Aakash Verma",
+      "email": "editor@sahayakassociates.org",
+      "phone": "+91 98111 22334",
+      "role": "EDITOR",
+      "status": "active",
+      "registrationDate": "2025-06-15",
+      "lastLogin": "2 hours ago",
+      "addresses": [],
+      "wishlist": [],
+      "orderIds": [],
+      "savedEbooks": []
+    },
+    {
+      "id": "usr-customer-1",
+      "name": "Col. Rajesh Vardhan",
+      "email": "rajesh.vardhan@example.com",
+      "phone": "+91 98711 22334",
+      "role": "CUSTOMER",
+      "status": "active",
+      "registrationDate": "2026-01-14",
+      "lastLogin": "Yesterday",
+      "addresses": [
+        {
+          "id": "addr-1",
+          "isDefault": true,
+          "name": "Col. Rajesh Vardhan",
+          "phone": "+91 98711 22334",
+          "address": "Villa 12, Defence Enclave, Sector 21",
+          "city": "New Delhi",
+          "state": "Delhi",
+          "pinCode": "110075",
+          "type": "Home"
+        }
+      ],
+      "wishlist": [
+        "book-1",
+        "book-4"
+      ],
+      "orderIds": [
+        "ord-1001"
+      ],
+      "savedEbooks": [
+        {
+          "bookId": "book-1",
+          "title": "The Art of Strategic Governance (eBook Edition)",
+          "downloadUrl": "#ebook-download-token-8941",
+          "purchasedDate": "Feb 27, 2026"
+        }
+      ]
+    }
+  ],
+  "auditLogs": [
+    {
+      "id": "log-1788354773474",
+      "timestamp": "2026-09-02T13:12:53.474Z",
+      "userName": "Administrative Officer",
+      "userRole": "ADMIN",
+      "action": "Book Cover Changed",
+      "resource": "Investment Dictionary",
+      "details": "Changed cover image for \"Investment Dictionary\" (ID: book-4) to https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/..."
+    },
+    {
+      "id": "log-1788354772146",
+      "timestamp": "2026-09-02T13:12:52.146Z",
+      "userName": "admin",
+      "userRole": "ADMIN",
+      "action": "Media Uploaded",
+      "resource": "Screenshot 2026-09-02 175241.png",
+      "details": "Uploaded asset to R2 [Key: sahayak/books/20260902-screenshot-2026-09-02-175241-1e4445.png, Size: 691.8 KB] in folder \"books\""
+    },
+    {
+      "id": "log-1788354762691",
+      "timestamp": "2026-09-02T13:12:42.691Z",
+      "userName": "admin",
+      "userRole": "ADMIN",
+      "action": "Media Uploaded",
+      "resource": "Screenshot 2026-09-02 175208.png",
+      "details": "Uploaded asset to R2 [Key: sahayak/books/20260902-screenshot-2026-09-02-175208-6c232d.png, Size: 1.08 MB] in folder \"books\""
+    },
+    {
+      "id": "log-1788354754305",
+      "timestamp": "2026-09-02T13:12:34.305Z",
+      "userName": "admin",
+      "userRole": "ADMIN",
+      "action": "Media Uploaded",
+      "resource": "Screenshot 2026-09-02 175140.png",
+      "details": "Uploaded asset to R2 [Key: sahayak/books/20260902-screenshot-2026-09-02-175140-8f7a50.png, Size: 370.9 KB] in folder \"books\""
+    },
+    {
+      "id": "log-1788354742696",
+      "timestamp": "2026-09-02T13:12:22.696Z",
+      "userName": "Administrative Officer",
+      "userRole": "ADMIN",
+      "action": "Book Cover Changed",
+      "resource": "Heyy 18: What an 18 Year Old Should Know",
+      "details": "Changed cover image for \"Heyy 18: What an 18 Year Old Should Know\" (ID: book-governance-copy-replaced) to https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/..."
+    },
+    {
+      "id": "log-1788354741271",
+      "timestamp": "2026-09-02T13:12:21.271Z",
+      "userName": "admin",
+      "userRole": "ADMIN",
+      "action": "Media Uploaded",
+      "resource": "Screenshot 2026-09-01 190217.png",
+      "details": "Uploaded asset to R2 [Key: sahayak/books/20260902-screenshot-2026-09-01-190217-1dc4de.png, Size: 648.6 KB] in folder \"books\""
+    },
+    {
+      "id": "log-1788354734355",
+      "timestamp": "2026-09-02T13:12:14.355Z",
+      "userName": "admin",
+      "userRole": "ADMIN",
+      "action": "Media Uploaded",
+      "resource": "Screenshot 2026-09-01 190232.png",
+      "details": "Uploaded asset to R2 [Key: sahayak/books/20260902-screenshot-2026-09-01-190232-b18b97.png, Size: 985.3 KB] in folder \"books\""
+    },
+    {
+      "id": "log-1788354715354",
+      "timestamp": "2026-09-02T13:11:55.354Z",
+      "userName": "Administrative Officer",
+      "userRole": "ADMIN",
+      "action": "Book Cover Changed",
+      "resource": "What My MBA Did Not Teach Me About Money",
+      "details": "Changed cover image for \"What My MBA Did Not Teach Me About Money\" (ID: book-3) to https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/..."
+    },
+    {
+      "id": "log-1788354712031",
+      "timestamp": "2026-09-02T13:11:52.031Z",
+      "userName": "admin",
+      "userRole": "ADMIN",
+      "action": "Media Uploaded",
+      "resource": "Screenshot 2026-09-02 174952.png",
+      "details": "Uploaded asset to R2 [Key: sahayak/books/20260902-screenshot-2026-09-02-174952-93262f.png, Size: 279.6 KB] in folder \"books\""
+    },
+    {
+      "id": "log-1788354694527",
+      "timestamp": "2026-09-02T13:11:34.527Z",
+      "userName": "admin",
+      "userRole": "ADMIN",
+      "action": "Media Uploaded",
+      "resource": "Screenshot 2026-09-01 190217.png",
+      "details": "Uploaded asset to R2 [Key: sahayak/books/20260902-screenshot-2026-09-01-190217-a32f99.png, Size: 648.6 KB] in folder \"books\""
+    },
+    {
+      "id": "log-1788354687848",
+      "timestamp": "2026-09-02T13:11:27.848Z",
+      "userName": "admin",
+      "userRole": "ADMIN",
+      "action": "Media Uploaded",
+      "resource": "Screenshot 2026-09-02 174938.png",
+      "details": "Uploaded asset to R2 [Key: sahayak/books/20260902-screenshot-2026-09-02-174938-52ff8d.png, Size: 431.2 KB] in folder \"books\""
+    },
+    {
+      "id": "log-1788354668365",
+      "timestamp": "2026-09-02T13:11:08.365Z",
+      "userName": "Administrative Officer",
+      "userRole": "ADMIN",
+      "action": "Book Cover Changed",
+      "resource": "Dear Son : Life Lessons from a Father",
+      "details": "Changed cover image for \"Dear Son : Life Lessons from a Father\" (ID: book-2) to https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/..."
+    },
+    {
+      "id": "log-1788354664793",
+      "timestamp": "2026-09-02T13:11:04.793Z",
+      "userName": "admin",
+      "userRole": "ADMIN",
+      "action": "Media Uploaded",
+      "resource": "Screenshot 2026-09-01 192900.png",
+      "details": "Uploaded asset to R2 [Key: sahayak/books/20260902-screenshot-2026-09-01-192900-2522ea.png, Size: 536.4 KB] in folder \"books\""
+    },
+    {
+      "id": "log-1788354656526",
+      "timestamp": "2026-09-02T13:10:56.526Z",
+      "userName": "admin",
+      "userRole": "ADMIN",
+      "action": "Media Uploaded",
+      "resource": "Screenshot 2026-09-01 192918.png",
+      "details": "Uploaded asset to R2 [Key: sahayak/books/20260902-screenshot-2026-09-01-192918-3d9c60.png, Size: 561.5 KB] in folder \"books\""
+    },
+    {
+      "id": "log-1788354654268",
+      "timestamp": "2026-09-02T13:10:54.268Z",
+      "userName": "admin",
+      "userRole": "ADMIN",
+      "action": "Media Uploaded",
+      "resource": "Screenshot 2026-09-01 192900.png",
+      "details": "Uploaded asset to R2 [Key: sahayak/books/20260902-screenshot-2026-09-01-192900-565a57.png, Size: 536.4 KB] in folder \"books\""
+    },
+    {
+      "id": "log-1788354093222",
+      "userName": "Sandeep Sahni",
+      "userRole": "SUPER_ADMIN",
+      "action": "Book Deleted",
+      "resource": "The Art of Strategic Governance",
+      "details": "Permanently removed book ID: book-1",
+      "timestamp": "Sep 2, 2026, 06:31 PM"
+    },
+    {
+      "id": "log-1788353753599",
+      "userName": "Sandeep Sahni",
+      "userRole": "SUPER_ADMIN",
+      "action": "Book Updated",
+      "resource": "Investment Dictionary",
+      "details": "Updated price to ₹449, Stock: 110",
+      "timestamp": "Sep 2, 2026, 06:25 PM"
+    },
+    {
+      "id": "log-1788353750234",
+      "userName": "Sandeep Sahni",
+      "userRole": "SUPER_ADMIN",
+      "action": "Media Uploaded",
+      "resource": "screenshot 2026 09 02 175241",
+      "details": "Folder: Books",
+      "timestamp": "Sep 2, 2026, 06:25 PM"
+    },
+    {
+      "id": "log-1788353745090",
+      "userName": "Sandeep Sahni",
+      "userRole": "SUPER_ADMIN",
+      "action": "Media Uploaded",
+      "resource": "screenshot 2026 09 02 175208",
+      "details": "Folder: Books",
+      "timestamp": "Sep 2, 2026, 06:25 PM"
+    },
+    {
+      "id": "log-1788353732461",
+      "userName": "Sandeep Sahni",
+      "userRole": "SUPER_ADMIN",
+      "action": "Media Uploaded",
+      "resource": "screenshot 2026 09 02 175140",
+      "details": "Folder: Books",
+      "timestamp": "Sep 2, 2026, 06:25 PM"
+    },
+    {
+      "id": "log-1788353619817",
+      "userName": "Sandeep Sahni",
+      "userRole": "SUPER_ADMIN",
+      "action": "Media Uploaded",
+      "resource": "screenshot 2026 09 01 190217",
+      "details": "Folder: Books",
+      "timestamp": "Sep 2, 2026, 06:23 PM"
+    },
+    {
+      "id": "log-1788353619207",
+      "userName": "Sandeep Sahni",
+      "userRole": "SUPER_ADMIN",
+      "action": "Book Updated",
+      "resource": "Heyy 18: What an 18 Year Old Should Know",
+      "details": "Updated price to ₹399, Stock: 1",
+      "timestamp": "Sep 2, 2026, 06:23 PM"
+    },
+    {
+      "id": "log-1788353611848",
+      "userName": "Sandeep Sahni",
+      "userRole": "SUPER_ADMIN",
+      "action": "Media Uploaded",
+      "resource": "screenshot 2026 09 01 190232",
+      "details": "Folder: Books",
+      "timestamp": "Sep 2, 2026, 06:23 PM"
+    },
+    {
+      "id": "log-1788353597414",
+      "userName": "Sandeep Sahni",
+      "userRole": "SUPER_ADMIN",
+      "action": "Book Updated",
+      "resource": "What My MBA Did Not Teach Me About Money",
+      "details": "Updated price to ₹436, Stock: 65",
+      "timestamp": "Sep 2, 2026, 06:23 PM"
+    },
+    {
+      "id": "log-1788353595628",
+      "userName": "Sandeep Sahni",
+      "userRole": "SUPER_ADMIN",
+      "action": "Media Uploaded",
+      "resource": "screenshot 2026 09 02 174952",
+      "details": "Folder: Books",
+      "timestamp": "Sep 2, 2026, 06:23 PM"
+    },
+    {
+      "id": "log-1788353584924",
+      "userName": "Sandeep Sahni",
+      "userRole": "SUPER_ADMIN",
+      "action": "Media Uploaded",
+      "resource": "screenshot 2026 09 02 174938",
+      "details": "Folder: Books",
+      "timestamp": "Sep 2, 2026, 06:23 PM"
+    },
+    {
+      "id": "log-1788353564392",
+      "userName": "Sandeep Sahni",
+      "userRole": "SUPER_ADMIN",
+      "action": "Book Updated",
+      "resource": "Dear Son : Life Lessons from a Father",
+      "details": "Updated price to ₹359, Stock: 42",
+      "timestamp": "Sep 2, 2026, 06:22 PM"
+    },
+    {
+      "id": "log-1788353563225",
+      "userName": "Sandeep Sahni",
+      "userRole": "SUPER_ADMIN",
+      "action": "Media Uploaded",
+      "resource": "screenshot 2026 09 01 192918",
+      "details": "Folder: Books",
+      "timestamp": "Sep 2, 2026, 06:22 PM"
+    },
+    {
+      "id": "log-1788353553086",
+      "userName": "Sandeep Sahni",
+      "userRole": "SUPER_ADMIN",
+      "action": "Media Uploaded",
+      "resource": "screenshot 2026 09 01 192900",
+      "details": "Folder: Books",
+      "timestamp": "Sep 2, 2026, 06:22 PM"
+    },
+    {
+      "id": "log-1788353542468",
+      "userName": "Sandeep Sahni",
+      "userRole": "SUPER_ADMIN",
+      "action": "Media Uploaded",
+      "resource": "screenshot 2026 09 01 192900",
+      "details": "Folder: Books",
+      "timestamp": "Sep 2, 2026, 06:22 PM"
+    },
+    {
+      "id": "log-1788353526391",
+      "userName": "Sandeep Sahni",
+      "userRole": "SUPER_ADMIN",
+      "action": "Book Deleted",
+      "resource": "The Art of Strategic Governance",
+      "details": "Permanently removed book ID: book-1",
+      "timestamp": "Sep 2, 2026, 06:22 PM"
+    },
+    {
+      "id": "log-1",
+      "userName": "Sandeep Sahni",
+      "userRole": "SUPER_ADMIN",
+      "action": "Book Price Updated",
+      "resource": "The Art of Strategic Governance",
+      "details": "Changed selling price from ₹999 to ₹899 (Discount adjusted to 31%)",
+      "timestamp": "2026-03-01 10:15 AM"
+    },
+    {
+      "id": "log-2",
+      "userName": "Sandeep Sahni",
+      "userRole": "SUPER_ADMIN",
+      "action": "Review Approved",
+      "resource": "Modern Indian Jurisprudence",
+      "details": "Approved 5-star verified reader review by Adv. Rohan Deshmukh",
+      "timestamp": "2026-03-01 09:30 AM"
+    },
+    {
+      "id": "log-3",
+      "userName": "Aakash Verma",
+      "userRole": "EDITOR",
+      "action": "Inventory Restocked",
+      "resource": "Investment Dictionary",
+      "details": "Stock increased +50 units (Current stock: 95)",
+      "timestamp": "2026-02-28 04:45 PM"
+    }
+  ],
+  "orders": [
+    {
+      "id": "ord-1001",
+      "orderNumber": "SB-2026-8941",
+      "date": "2026-02-27T10:30:00Z",
+      "customer": {
+        "fullName": "Aarav Sharma",
+        "email": "aarav.sharma@example.com",
+        "phone": "+91 98112 34567",
+        "address": "Flat 402, Royal Residency, Sector 62",
+        "city": "Noida",
+        "state": "Uttar Pradesh",
+        "pinCode": "201309",
+        "country": "India"
+      },
+      "items": [
+        {
+          "bookId": "book-1",
+          "title": "The Art of Strategic Governance",
+          "authorName": "Dr. Arvind Sahayak",
+          "coverImage": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=800&q=80",
+          "format": "Hardcover",
+          "price": 899,
+          "originalPrice": 1299,
+          "quantity": 1,
+          "inStock": true
+        }
+      ],
+      "subtotal": 899,
+      "shipping": 0,
+      "discount": 0,
+      "total": 899,
+      "paymentMethod": "UPI",
+      "paymentStatus": "Paid",
+      "orderStatus": "Shipped",
+      "trackingNumber": "BLUEDART-89410294",
+      "courierPartner": "BlueDart Express",
+      "estimatedDelivery": "March 3, 2026",
+      "trackingSteps": [
+        {
+          "status": "Order Confirmed",
+          "label": "Order Confirmed",
+          "description": "Payment verified",
+          "timestamp": "Feb 27, 2026, 10:30 AM",
+          "completed": true,
+          "current": false
+        },
+        {
+          "status": "Processing",
+          "label": "Order Processing",
+          "description": "Inventory reserved",
+          "timestamp": "Feb 27, 2026, 01:15 PM",
+          "completed": true,
+          "current": false
+        },
+        {
+          "status": "Packed",
+          "label": "Custom Hardcover Boxing",
+          "description": "Packed securely",
+          "timestamp": "Feb 28, 2026, 11:00 AM",
+          "completed": true,
+          "current": false
+        },
+        {
+          "status": "Shipped",
+          "label": "In Transit",
+          "description": "Dispatched via BlueDart Express",
+          "timestamp": "Feb 28, 2026, 04:30 PM",
+          "completed": true,
+          "current": true
+        },
+        {
+          "status": "Out for Delivery",
+          "label": "Out for Delivery",
+          "description": "Courier out for delivery",
+          "completed": false,
+          "current": false
+        },
+        {
+          "status": "Delivered",
+          "label": "Delivered",
+          "description": "Delivered to recipient",
+          "completed": false,
+          "current": false
+        }
+      ]
+    }
+  ],
+  "subscribers": [
+    {
+      "id": "sub-1",
+      "email": "scholar.arun@gmail.com",
+      "date": "2026-02-20",
+      "source": "Home Footer"
+    },
+    {
+      "id": "sub-2",
+      "email": "legal.practitioner@bar.in",
+      "date": "2026-02-24",
+      "source": "Editorial Banner"
+    }
+  ],
+  "analyticsEvents": [
+    {
+      "id": "ev-1",
+      "type": "pageview",
+      "target": "Home",
+      "timestamp": "2026-09-02T11:50:41.787Z",
+      "device": "desktop"
+    },
+    {
+      "id": "ev-2",
+      "type": "view_book",
+      "target": "The Art of Strategic Governance",
+      "timestamp": "2026-09-02T12:20:41.787Z",
+      "device": "desktop"
+    }
+  ],
+  "updatedAt": "2026-09-02T13:47:27.110Z"
+}

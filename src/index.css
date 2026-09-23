@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-display: "Cinzel", "Playfair Display", Georgia, serif;
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-sahayak-navy: #0B192C;
+  --color-sahayak-midnight: #061120;
+  --color-sahayak-deep: #0e2238;
+  --color-sahayak-gold: #C5A059;
+  --color-sahayak-gold-light: #E0BA70;
+  --color-sahayak-gold-dark: #A8833B;
+  --color-sahayak-ivory: #FAF7F2;
+  --color-sahayak-cream: #F3ECE1;
+  --color-sahayak-sand: #EAE1D2;
+  --color-sahayak-charcoal: #1E293B;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    background-color: #FAF7F2;
+    color: #111827;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .font-serif-title {
+    font-family: var(--font-serif);
+  }
+
+  .font-brand-display {
+    font-family: var(--font-display);
+  }
+}
+
+/* Custom 3D Book perspective */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.perspective-1500 {
+  perspective: 1500px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.book-shadow {
+  box-shadow: 0 15px 35px -5px rgba(11, 25, 44, 0.25), 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.book-spine-effect {
+  background: linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 8%, rgba(0,0,0,0.15) 10%, rgba(0,0,0,0) 15%);
+}
+
+.gold-foil-text {
+  background: linear-gradient(135deg, #D4AF37 0%, #F3E5AB 50%, #AA771C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-gradient-bg {
+  background: linear-gradient(135deg, #C5A059 0%, #D8B76E 50%, #B08B43 100%);
+}
+
+.navy-gradient-bg {
+  background: linear-gradient(135deg, #0B192C 0%, #152A4A 100%);
+}
+
+/* Smooth custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FAF7F2;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C5A059;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #A8833B;
+}
+
