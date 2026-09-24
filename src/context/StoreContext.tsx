@@ -724,8 +724,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     if (!sessionToken) {
       localStorage.setItem('sahayak_cart', JSON.stringify(cart));
-    } else {
-      localStorage.removeItem('sahayak_cart');
     }
   }, [cart, sessionToken]);
 
@@ -1175,7 +1173,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.removeItem('sahayak_session_token');
     localStorage.removeItem('sahayak_current_user');
     localStorage.removeItem('sahayak_admin_user');
-    localStorage.removeItem('sahayak_cart');
   };
 
   const forgotPassword = async (email: string) => {
