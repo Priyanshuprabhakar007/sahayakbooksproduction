@@ -16,11 +16,24 @@ import {
 export const ContactView: React.FC = () => {
   const { settings, books, submitEnquiry } = useStore();
 
+  const defaultSubjects = [
+    'Book Inquiry & General Questions',
+    'Bulk / Institutional Order Request',
+    'Order Tracking & Delivery Help',
+    'Author Session / Event Invitation',
+    'Feedback & Reviews',
+  ];
+
+  const subjectOptions =
+    settings.contactSubjectOptions && settings.contactSubjectOptions.length > 0
+      ? settings.contactSubjectOptions
+      : defaultSubjects;
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    subject: 'Book Inquiry & General Questions',
+    subject: subjectOptions[0] || 'Book Inquiry & General Questions',
     bookId: '',
     message: '',
   });
@@ -35,7 +48,7 @@ export const ContactView: React.FC = () => {
     submitEnquiry({
       name: formData.name,
       email: formData.email,
-      phone: formData.phone || '+91 9876543210',
+      phone: formData.phone || settings.contactPhone || '+91 9876543210',
       subject: formData.subject,
       bookId: formData.bookId || undefined,
       message: formData.message,
@@ -46,7 +59,7 @@ export const ContactView: React.FC = () => {
       name: '',
       email: '',
       phone: '',
-      subject: 'Book Inquiry & General Questions',
+      subject: subjectOptions[0] || 'Book Inquiry & General Questions',
       bookId: '',
       message: '',
     });
@@ -71,19 +84,29 @@ export const ContactView: React.FC = () => {
     },
   ];
 
+  const cleanWhatsapp = (settings.whatsappNumber || '').replace(/[^0-9]/g, '');
+  const whatsappMessage = encodeURIComponent(
+    settings.whatsappPrefilledMessage || 'Hello Sahayak Books, I have an enquiry regarding books.'
+  );
+
+  const phoneDisplay = [settings.contactPhone, settings.secondaryContactPhone]
+    .filter(Boolean)
+    .join(' / ');
+
   return (
     <div id="contact-page" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto space-y-3">
         <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#C5A059]">
           <Building className="w-4 h-4" />
-          <span>Sahayak Associates Support Desk</span>
+          <span>{settings.contactEyebrow || 'Sahayak Associates Support Desk'}</span>
         </div>
         <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-[#0B192C]">
-          Get in Touch With Us
+          {settings.contactHeading || 'Get in Touch With Us'}
         </h1>
         <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-          For book inquiries, bulk orders, author sessions, reader support, or order tracking, we are here to help.
+          {settings.contactSubheading ||
+            'For book inquiries, bulk orders, author sessions, reader support, or order tracking, we are here to help.'}
         </p>
       </div>
 
@@ -100,7 +123,9 @@ export const ContactView: React.FC = () => {
                 <MapPin className="w-5 h-5 text-[#C5A059] shrink-0 mt-0.5" />
                 <div>
                   <h3 className="font-bold text-stone-900">Office Address</h3>
-                  <p className="text-stone-600 mt-0.5 leading-relaxed">{settings.officeAddress}</p>
+                  <p className="text-stone-600 mt-0.5 leading-relaxed">
+                    {settings.officeAddress || 'Flat 402, Royal Residency, Sector 62, Noida, Uttar Pradesh 201309'}
+                  </p>
                 </div>
               </div>
 
@@ -108,8 +133,12 @@ export const ContactView: React.FC = () => {
                 <Phone className="w-5 h-5 text-[#C5A059] shrink-0 mt-0.5" />
                 <div>
                   <h3 className="font-bold text-stone-900">Phone Support</h3>
-                  <p className="font-mono text-stone-700 mt-0.5">+91 (11) 4892-0199 / +91 98765 43210</p>
-                  <p className="text-[10px] text-stone-400">Monday - Saturday, 9:00 AM - 6:00 PM IST</p>
+                  <p className="font-mono text-stone-700 mt-0.5">
+                    {phoneDisplay || '+91 (11) 4892-0199 / +91 98765 43210'}
+                  </p>
+                  <p className="text-[10px] text-stone-400">
+                    {settings.businessHours || 'Monday - Saturday, 9:00 AM - 6:00 PM IST'}
+                  </p>
                 </div>
               </div>
 
@@ -117,32 +146,37 @@ export const ContactView: React.FC = () => {
                 <Mail className="w-5 h-5 text-[#C5A059] shrink-0 mt-0.5" />
                 <div>
                   <h3 className="font-bold text-stone-900">Email Address</h3>
-                  <p className="font-mono text-stone-700 mt-0.5">{settings.contactEmail}</p>
-                  <p className="text-[10px] text-stone-400">Average response time: &lt; 4 hours</p>
+                  <p className="font-mono text-stone-700 mt-0.5">
+                    {settings.contactEmail || 'contact@sahayakassociates.org'}
+                  </p>
+                  <p className="text-[10px] text-stone-400">
+                    {settings.contactResponseTime || 'Average response time: < 4 hours'}
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* WhatsApp Direct Action Button */}
             <a
-              href={`https://wa.me/${settings.whatsappNumber.replace(/[^0-9]/g, '')}?text=Hello%20Sahayak%20Books,%20I%20have%20an%20enquiry%20regarding%20books.`}
+              href={`https://wa.me/${cleanWhatsapp}?text=${whatsappMessage}`}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full py-3 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
             >
               <MessageCircle className="w-4 h-4" />
-              <span>Chat With Us on WhatsApp</span>
+              <span>{settings.whatsappButtonText || 'Chat With Us on WhatsApp'}</span>
             </a>
           </div>
 
-          {/* Interactive Map Visual */}
+          {/* Author Sessions Card */}
           <div className="bg-[#0B192C] text-white rounded-3xl p-6 border border-[#C5A059]/40 shadow-sm space-y-2">
             <h3 className="font-serif text-sm font-bold text-[#C5A059] flex items-center gap-2">
               <Clock className="w-4 h-4" />
-              <span>Author Sessions & Book Signings</span>
+              <span>{settings.authorSessionsHeading || 'Author Sessions & Book Signings'}</span>
             </h3>
             <p className="text-xs text-stone-300 leading-relaxed">
-              Interested in inviting author Sandeep Sahni for a session, workshop, or book signing? Send us a message through the form.
+              {settings.authorSessionsText ||
+                'Interested in inviting author Sandeep Sahni for a session, workshop, or book signing? Send us a message through the form.'}
             </p>
           </div>
         </div>
@@ -151,10 +185,10 @@ export const ContactView: React.FC = () => {
         <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-10 border border-stone-200 shadow-sm space-y-6">
           <div>
             <h2 className="font-serif text-2xl font-bold text-[#0B192C]">
-              Send Us a Message
+              {settings.contactFormHeading || 'Send Us a Message'}
             </h2>
             <p className="text-xs text-stone-500 mt-1">
-              Fill in the form below and we will get back to you promptly.
+              {settings.contactFormSubheading || 'Fill in the form below and we will get back to you promptly.'}
             </p>
           </div>
 
@@ -162,15 +196,16 @@ export const ContactView: React.FC = () => {
             <div className="p-8 rounded-2xl bg-emerald-50 border border-emerald-200 text-center space-y-3 animate-in fade-in">
               <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
               <h3 className="font-serif text-xl font-bold text-emerald-950">
-                Message Sent Successfully!
+                {settings.contactSuccessHeading || 'Message Sent Successfully!'}
               </h3>
               <p className="text-xs text-emerald-800 max-w-md mx-auto">
-                Thank you for reaching out to Sahayak Books. Our team will review your message and get back to you soon.
+                {settings.contactSuccessMessage ||
+                  'Thank you for reaching out to Sahayak Books. Our team will review your message and get back to you soon.'}
               </p>
               <button
                 type="button"
                 onClick={() => setIsSubmitted(false)}
-                className="px-4 py-2 bg-emerald-800 text-white text-xs font-bold rounded-xl"
+                className="px-4 py-2 bg-emerald-800 text-white text-xs font-bold rounded-xl cursor-pointer"
               >
                 Send Another Message
               </button>
@@ -220,11 +255,11 @@ export const ContactView: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                     className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl font-medium"
                   >
-                    <option>Book Inquiry & General Questions</option>
-                    <option>Bulk / Institutional Order Request</option>
-                    <option>Order Tracking & Delivery Help</option>
-                    <option>Author Session / Event Invitation</option>
-                    <option>Feedback & Reviews</option>
+                    {subjectOptions.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -264,7 +299,7 @@ export const ContactView: React.FC = () => {
                 className="w-full py-3.5 bg-[#0B192C] text-[#C5A059] font-bold text-xs sm:text-sm rounded-xl hover:bg-[#152A4A] transition-colors flex items-center justify-center gap-2 shadow-md cursor-pointer"
               >
                 <Send className="w-4 h-4" />
-                <span>Transmit Official Communication</span>
+                <span>{settings.contactFormSubmitText || 'Transmit Official Communication'}</span>
               </button>
             </form>
           )}

@@ -76,7 +76,7 @@ export const AuthModal: React.FC = () => {
       onClick={closeAuthModal}
     >
       <div
-        className="relative w-full max-w-md bg-[#0B192C] text-[#FAF7F2] rounded-3xl shadow-2xl border border-[#C5A059]/40 overflow-hidden"
+        className="relative w-full max-w-md bg-[#0B192C] text-[#FAF7F2] rounded-3xl shadow-2xl border border-[#C5A059]/40 overflow-hidden max-h-[90vh] flex flex-col overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}

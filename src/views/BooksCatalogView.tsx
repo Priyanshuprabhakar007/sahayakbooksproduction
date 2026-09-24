@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useStore } from '../context/StoreContext';
 import { BookCard } from '../components/BookCard';
+import { RevealOnScroll } from '../components/RevealOnScroll';
 import { BookFormat } from '../types';
 import {
   Search,
@@ -489,95 +490,98 @@ export const BooksCatalogView: React.FC = () => {
             </div>
           ) : viewMode === 'grid' ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredBooks.map((book) => (
-                <BookCard key={book.id} book={book} />
+              {filteredBooks.map((book, idx) => (
+                <RevealOnScroll key={book.id} direction="up" delay={Math.min(0.3, idx * 0.06)}>
+                  <BookCard book={book} />
+                </RevealOnScroll>
               ))}
             </div>
           ) : (
             /* List View */
             <div className="space-y-4">
-              {filteredBooks.map((book) => (
-                <div
-                  key={book.id}
-                  onClick={() => navigate(`/books/${book.slug}`)}
-                  className="bg-white rounded-2xl p-5 border border-stone-200 hover:border-[#C5A059] shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row gap-5 cursor-pointer"
-                >
-                  <img
-                    src={book.coverImage}
-                    alt={book.title}
-                    className="w-28 sm:w-32 h-40 object-cover rounded-xl border border-stone-300 shadow-sm shrink-0 self-center sm:self-start"
-                  />
-                  <div className="flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between text-xs text-stone-500 mb-1">
-                        <span className="text-[#C5A059] font-semibold uppercase text-[11px]">
-                          {book.category}
-                        </span>
-                        <div className="flex items-center text-amber-500 font-semibold">
-                          <Star className="w-3.5 h-3.5 fill-current" />
-                          <span className="ml-1">{book.rating}</span>
-                          <span className="text-stone-400 font-normal ml-1">
-                            ({book.reviewCount})
+              {filteredBooks.map((book, idx) => (
+                <RevealOnScroll key={book.id} direction="up" delay={Math.min(0.3, idx * 0.06)}>
+                  <div
+                    onClick={() => navigate(`/books/${book.slug}`)}
+                    className="bg-white rounded-2xl p-5 border border-stone-200 hover:border-[#C5A059] shadow-sm hover:shadow-md transition-all flex flex-col sm:flex-row gap-5 cursor-pointer"
+                  >
+                    <img
+                      src={book.coverImage}
+                      alt={book.title}
+                      className="w-28 sm:w-32 h-40 object-cover rounded-xl border border-stone-300 shadow-sm shrink-0 self-center sm:self-start"
+                    />
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between text-xs text-stone-500 mb-1">
+                          <span className="text-[#C5A059] font-semibold uppercase text-[11px]">
+                            {book.category}
                           </span>
+                          <div className="flex items-center text-amber-500 font-semibold">
+                            <Star className="w-3.5 h-3.5 fill-current" />
+                            <span className="ml-1">{book.rating}</span>
+                            <span className="text-stone-400 font-normal ml-1">
+                              ({book.reviewCount})
+                            </span>
+                          </div>
+                        </div>
+
+                        <h3 className="font-serif text-lg font-bold text-[#0B192C] hover:text-[#C5A059] transition-colors">
+                          {book.title}
+                        </h3>
+                        <p className="text-xs text-stone-600 mt-0.5">By {book.authorName}</p>
+
+                        <p className="text-xs text-stone-600 mt-2 line-clamp-2 leading-relaxed">
+                          {book.description}
+                        </p>
+
+                        <div className="flex flex-wrap gap-1.5 mt-3">
+                          {book.formats.map((fmt) => (
+                            <span
+                              key={fmt}
+                              className="text-[10px] px-2 py-0.5 rounded bg-stone-100 text-stone-700 border border-stone-200"
+                            >
+                              {fmt}
+                            </span>
+                          ))}
                         </div>
                       </div>
 
-                      <h3 className="font-serif text-lg font-bold text-[#0B192C] hover:text-[#C5A059] transition-colors">
-                        {book.title}
-                      </h3>
-                      <p className="text-xs text-stone-600 mt-0.5">By {book.authorName}</p>
+                      <div className="flex items-center justify-between pt-4 mt-3 border-t border-stone-100">
+                        <div>
+                          <span className="font-mono text-xl font-bold text-[#0B192C]">
+                            ₹{book.price}
+                          </span>
+                          {book.originalPrice > book.price && (
+                            <span className="font-mono text-xs text-stone-400 line-through ml-2">
+                              ₹{book.originalPrice}
+                            </span>
+                          )}
+                        </div>
 
-                      <p className="text-xs text-stone-600 mt-2 line-clamp-2 leading-relaxed">
-                        {book.description}
-                      </p>
-
-                      <div className="flex flex-wrap gap-1.5 mt-3">
-                        {book.formats.map((fmt) => (
-                          <span
-                            key={fmt}
-                            className="text-[10px] px-2 py-0.5 rounded bg-stone-100 text-stone-700 border border-stone-200"
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openSampleReader(book);
+                            }}
+                            className="px-3 py-1.5 rounded-lg border border-stone-300 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
                           >
-                            {fmt}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-4 mt-3 border-t border-stone-100">
-                      <div>
-                        <span className="font-mono text-xl font-bold text-[#0B192C]">
-                          ₹{book.price}
-                        </span>
-                        {book.originalPrice > book.price && (
-                          <span className="font-mono text-xs text-stone-400 line-through ml-2">
-                            ₹{book.originalPrice}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openSampleReader(book);
-                          }}
-                          className="px-3 py-1.5 rounded-lg border border-stone-300 text-xs font-semibold text-stone-700 hover:bg-stone-50"
-                        >
-                          Read Sample
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            addToCart(book, 'Paperback', 1);
-                          }}
-                          className="px-4 py-1.5 rounded-lg bg-[#0B192C] text-[#C5A059] text-xs font-bold hover:bg-[#152A4A]"
-                        >
-                          Add to Basket
-                        </button>
+                            Read Sample
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              addToCart(book, 'Paperback', 1);
+                            }}
+                            className="px-4 py-1.5 rounded-lg bg-[#0B192C] text-[#C5A059] text-xs font-bold hover:bg-[#152A4A] cursor-pointer"
+                          >
+                            Add to Basket
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                </RevealOnScroll>
               ))}
             </div>
           )}

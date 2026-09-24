@@ -61,6 +61,11 @@ import {
   Cloud,
   Home,
   ArrowLeft,
+  Phone,
+  MapPin,
+  MessageCircle,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 
 const CURATED_BOOK_COVERS = [
@@ -197,6 +202,7 @@ export const AdminDashboardView: React.FC = () => {
     else if (raw.includes('/admin/reviews')) setActiveTab('reviews');
     else if (raw.includes('/admin/leads')) setActiveTab('leads');
     else if (raw.includes('/admin/content') || raw.includes('/admin/pages')) setActiveTab('content');
+    else if (raw.includes('/admin/contact') || raw.includes('/admin/support')) setActiveTab('contact');
     else if (
       raw.includes('/admin/brand') ||
       raw.includes('/admin/branding') ||
@@ -292,6 +298,92 @@ export const AdminDashboardView: React.FC = () => {
   // Editable settings copy
   const [formSettings, setFormSettings] = useState(settings);
   const [settingsSavedMsg, setSettingsSavedMsg] = useState(false);
+
+  // Contact & Support Desk settings state
+  const [contactSettings, setContactSettings] = useState({
+    contactEyebrow: settings?.contactEyebrow || 'Sahayak Associates Support Desk',
+    contactHeading: settings?.contactHeading || 'Get in Touch With Us',
+    contactSubheading: settings?.contactSubheading || 'For book inquiries, bulk orders, author sessions, reader support, or order tracking, we are here to help.',
+    officeAddress: settings?.officeAddress || 'Flat 402, Royal Residency, Sector 62, Noida, Uttar Pradesh 201309',
+    contactPhone: settings?.contactPhone || '+91 (11) 4892-0199',
+    secondaryContactPhone: settings?.secondaryContactPhone || '+91 98765 43210',
+    contactEmail: settings?.contactEmail || 'contact@sahayakassociates.org',
+    whatsappNumber: settings?.whatsappNumber || '+919876543210',
+    businessHours: settings?.businessHours || 'Monday - Saturday, 9:00 AM - 6:00 PM IST',
+    contactResponseTime: settings?.contactResponseTime || 'Average response time: < 4 hours',
+    whatsappButtonText: settings?.whatsappButtonText || 'Chat With Us on WhatsApp',
+    whatsappPrefilledMessage: settings?.whatsappPrefilledMessage || 'Hello Sahayak Books, I have an enquiry regarding books.',
+    authorSessionsHeading: settings?.authorSessionsHeading || 'Author Sessions & Book Signings',
+    authorSessionsText: settings?.authorSessionsText || 'Interested in inviting author Sandeep Sahni for a session, workshop, or book signing? Send us a message through the form.',
+    contactFormHeading: settings?.contactFormHeading || 'Send Us a Message',
+    contactFormSubheading: settings?.contactFormSubheading || 'Fill in the form below and we will get back to you promptly.',
+    contactFormSubmitText: settings?.contactFormSubmitText || 'Transmit Official Communication',
+    contactSuccessHeading: settings?.contactSuccessHeading || 'Message Sent Successfully!',
+    contactSuccessMessage: settings?.contactSuccessMessage || 'Thank you for reaching out to Sahayak Books. Our team will review your message and get back to you soon.',
+    contactSubjectOptions: (settings?.contactSubjectOptions && settings.contactSubjectOptions.length > 0)
+      ? [...settings.contactSubjectOptions]
+      : [
+          'Book Inquiry & General Questions',
+          'Bulk / Institutional Order Request',
+          'Order Tracking & Delivery Help',
+          'Author Session / Event Invitation',
+          'Feedback & Reviews',
+        ],
+  });
+
+  useEffect(() => {
+    if (settings) {
+      setContactSettings({
+        contactEyebrow: settings.contactEyebrow || 'Sahayak Associates Support Desk',
+        contactHeading: settings.contactHeading || 'Get in Touch With Us',
+        contactSubheading: settings.contactSubheading || 'For book inquiries, bulk orders, author sessions, reader support, or order tracking, we are here to help.',
+        officeAddress: settings.officeAddress || 'Flat 402, Royal Residency, Sector 62, Noida, Uttar Pradesh 201309',
+        contactPhone: settings.contactPhone || '+91 (11) 4892-0199',
+        secondaryContactPhone: settings.secondaryContactPhone || '+91 98765 43210',
+        contactEmail: settings.contactEmail || 'contact@sahayakassociates.org',
+        whatsappNumber: settings.whatsappNumber || '+919876543210',
+        businessHours: settings.businessHours || 'Monday - Saturday, 9:00 AM - 6:00 PM IST',
+        contactResponseTime: settings.contactResponseTime || 'Average response time: < 4 hours',
+        whatsappButtonText: settings.whatsappButtonText || 'Chat With Us on WhatsApp',
+        whatsappPrefilledMessage: settings.whatsappPrefilledMessage || 'Hello Sahayak Books, I have an enquiry regarding books.',
+        authorSessionsHeading: settings.authorSessionsHeading || 'Author Sessions & Book Signings',
+        authorSessionsText: settings.authorSessionsText || 'Interested in inviting author Sandeep Sahni for a session, workshop, or book signing? Send us a message through the form.',
+        contactFormHeading: settings.contactFormHeading || 'Send Us a Message',
+        contactFormSubheading: settings.contactFormSubheading || 'Fill in the form below and we will get back to you promptly.',
+        contactFormSubmitText: settings.contactFormSubmitText || 'Transmit Official Communication',
+        contactSuccessHeading: settings.contactSuccessHeading || 'Message Sent Successfully!',
+        contactSuccessMessage: settings.contactSuccessMessage || 'Thank you for reaching out to Sahayak Books. Our team will review your message and get back to you soon.',
+        contactSubjectOptions: (settings.contactSubjectOptions && settings.contactSubjectOptions.length > 0)
+          ? [...settings.contactSubjectOptions]
+          : [
+              'Book Inquiry & General Questions',
+              'Bulk / Institutional Order Request',
+              'Order Tracking & Delivery Help',
+              'Author Session / Event Invitation',
+              'Feedback & Reviews',
+            ],
+      });
+    }
+  }, [settings]);
+
+  const [newSubjectInput, setNewSubjectInput] = useState('');
+  const [isSavingContact, setIsSavingContact] = useState(false);
+  const [contactSaveStatus, setContactSaveStatus] = useState<{ success?: boolean; msg?: string } | null>(null);
+
+  const handleSaveContactSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingContact(true);
+    setContactSaveStatus(null);
+    try {
+      await updateSettings(contactSettings);
+      setIsSavingContact(false);
+      setContactSaveStatus({ success: true, msg: 'Contact & Support Settings saved permanently to D1.' });
+      setTimeout(() => setContactSaveStatus(null), 4000);
+    } catch (err: any) {
+      setIsSavingContact(false);
+      setContactSaveStatus({ success: false, msg: err.message || 'Failed to save settings to server.' });
+    }
+  };
 
   // Deletion Confirmation Modal State
   const [deleteTarget, setDeleteTarget] = useState<{
@@ -1066,6 +1158,7 @@ export const AdminDashboardView: React.FC = () => {
           { id: 'media', label: 'Media Assets Library', icon: ImageIcon, badge: mediaItems?.length },
           { id: 'storage', label: 'Cloudflare R2 Storage', icon: Cloud },
           { id: 'content', label: 'Copy & Content CMS', icon: Type },
+          { id: 'contact', label: 'Contact & Support', icon: Phone },
           { id: 'brand', label: 'Branding & Identity', icon: Sliders },
           { id: 'sections', label: 'Homepage Layout', icon: Layers },
           { id: 'coupons', label: 'Coupons & Promos', icon: Tag, badge: coupons.length },
@@ -2601,6 +2694,504 @@ export const AdminDashboardView: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* ==================================================== */}
+        {/* 14. CONTACT & SUPPORT DESK SETTINGS */}
+        {/* ==================================================== */}
+        {activeTab === 'contact' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-stone-200 shadow-sm">
+              <div>
+                <h2 className="font-serif text-2xl font-bold text-[#0B192C] flex items-center gap-2">
+                  <Phone className="w-6 h-6 text-[#C5A059]" />
+                  <span>Contact &amp; Support Desk CMS</span>
+                </h2>
+                <p className="text-xs text-stone-500 mt-1">
+                  Manage public contact details, response times, WhatsApp pre-filled text, author session cards, and form subjects stored in Cloudflare D1.
+                </p>
+              </div>
+
+              <button
+                onClick={handleSaveContactSettings}
+                disabled={isSavingContact}
+                className="px-6 py-2.5 bg-[#0B192C] text-[#C5A059] hover:bg-[#152A4A] text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shrink-0"
+              >
+                <Save className="w-4 h-4" />
+                <span>{isSavingContact ? 'Saving to D1...' : 'Save All Contact Settings'}</span>
+              </button>
+            </div>
+
+            {contactSaveStatus && (
+              <div
+                className={`p-4 rounded-xl border text-xs font-medium flex items-center gap-2 ${
+                  contactSaveStatus.success
+                    ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                    : 'bg-rose-50 text-rose-900 border-rose-200'
+                }`}
+              >
+                {contactSaveStatus.success ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                ) : (
+                  <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                )}
+                <span>{contactSaveStatus.msg}</span>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              {/* Left Column: Form Sections (7 cols) */}
+              <div className="lg:col-span-7 space-y-6">
+                <form onSubmit={handleSaveContactSettings} className="space-y-6">
+                  {/* Section A: Page Header */}
+                  <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-4">
+                    <h3 className="font-serif text-base font-bold text-[#0B192C] flex items-center gap-2 border-b border-stone-100 pb-3">
+                      <Type className="w-4 h-4 text-[#C5A059]" />
+                      <span>Contact Page Header &amp; Subtitle</span>
+                    </h3>
+
+                    <div className="space-y-3 text-xs">
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">Eyebrow / Small Badge Text</label>
+                        <input
+                          type="text"
+                          value={contactSettings.contactEyebrow}
+                          onChange={(e) => setContactSettings({ ...contactSettings, contactEyebrow: e.target.value })}
+                          placeholder="e.g. Sahayak Associates Support Desk"
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl font-medium"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">Main Heading *</label>
+                        <input
+                          type="text"
+                          required
+                          value={contactSettings.contactHeading}
+                          onChange={(e) => setContactSettings({ ...contactSettings, contactHeading: e.target.value })}
+                          placeholder="e.g. Get in Touch With Us"
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl font-serif font-bold text-sm"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">Page Subtitle / Subheading</label>
+                        <textarea
+                          rows={2}
+                          value={contactSettings.contactSubheading}
+                          onChange={(e) => setContactSettings({ ...contactSettings, contactSubheading: e.target.value })}
+                          placeholder="Introductory instructions for readers..."
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section B: Official Contact Info */}
+                  <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-4">
+                    <h3 className="font-serif text-base font-bold text-[#0B192C] flex items-center gap-2 border-b border-stone-100 pb-3">
+                      <MapPin className="w-4 h-4 text-[#C5A059]" />
+                      <span>Official Address, Phones &amp; Email</span>
+                    </h3>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div className="sm:col-span-2">
+                        <label className="block font-bold text-stone-700 mb-1">Official Physical Address *</label>
+                        <textarea
+                          rows={2}
+                          required
+                          value={contactSettings.officeAddress}
+                          onChange={(e) => setContactSettings({ ...contactSettings, officeAddress: e.target.value })}
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">Primary Support Phone *</label>
+                        <input
+                          type="text"
+                          required
+                          value={contactSettings.contactPhone}
+                          onChange={(e) => setContactSettings({ ...contactSettings, contactPhone: e.target.value })}
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">Secondary / Toll-Free Phone</label>
+                        <input
+                          type="text"
+                          value={contactSettings.secondaryContactPhone}
+                          onChange={(e) => setContactSettings({ ...contactSettings, secondaryContactPhone: e.target.value })}
+                          placeholder="+91 98765 43210"
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">Official Support Email *</label>
+                        <input
+                          type="email"
+                          required
+                          value={contactSettings.contactEmail}
+                          onChange={(e) => setContactSettings({ ...contactSettings, contactEmail: e.target.value })}
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">Email Response Time Badge</label>
+                        <input
+                          type="text"
+                          value={contactSettings.contactResponseTime}
+                          onChange={(e) => setContactSettings({ ...contactSettings, contactResponseTime: e.target.value })}
+                          placeholder="e.g. Average response time: < 4 hours"
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block font-bold text-stone-700 mb-1">Business &amp; Support Hours</label>
+                        <input
+                          type="text"
+                          value={contactSettings.businessHours}
+                          onChange={(e) => setContactSettings({ ...contactSettings, businessHours: e.target.value })}
+                          placeholder="e.g. Monday - Saturday, 9:00 AM - 6:00 PM IST"
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section C: WhatsApp Integration */}
+                  <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-4">
+                    <h3 className="font-serif text-base font-bold text-[#0B192C] flex items-center gap-2 border-b border-stone-100 pb-3">
+                      <MessageCircle className="w-4 h-4 text-emerald-600" />
+                      <span>WhatsApp Direct Support Setup</span>
+                    </h3>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">WhatsApp Number (With Country Code) *</label>
+                        <input
+                          type="text"
+                          required
+                          value={contactSettings.whatsappNumber}
+                          onChange={(e) => setContactSettings({ ...contactSettings, whatsappNumber: e.target.value })}
+                          placeholder="+919876543210"
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">WhatsApp Button Text</label>
+                        <input
+                          type="text"
+                          value={contactSettings.whatsappButtonText}
+                          onChange={(e) => setContactSettings({ ...contactSettings, whatsappButtonText: e.target.value })}
+                          placeholder="Chat With Us on WhatsApp"
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block font-bold text-stone-700 mb-1">WhatsApp Pre-filled Customer Message</label>
+                        <textarea
+                          rows={2}
+                          value={contactSettings.whatsappPrefilledMessage}
+                          onChange={(e) => setContactSettings({ ...contactSettings, whatsappPrefilledMessage: e.target.value })}
+                          placeholder="e.g. Hello Sahayak Books, I have an enquiry regarding books."
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl font-mono text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section D: Author Session & Event Card */}
+                  <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-4">
+                    <h3 className="font-serif text-base font-bold text-[#0B192C] flex items-center gap-2 border-b border-stone-100 pb-3">
+                      <Clock className="w-4 h-4 text-[#C5A059]" />
+                      <span>Author Session Banner Card</span>
+                    </h3>
+
+                    <div className="space-y-3 text-xs">
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">Card Heading</label>
+                        <input
+                          type="text"
+                          value={contactSettings.authorSessionsHeading}
+                          onChange={(e) => setContactSettings({ ...contactSettings, authorSessionsHeading: e.target.value })}
+                          placeholder="Author Sessions & Book Signings"
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl font-serif font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">Card Body Description</label>
+                        <textarea
+                          rows={2}
+                          value={contactSettings.authorSessionsText}
+                          onChange={(e) => setContactSettings({ ...contactSettings, authorSessionsText: e.target.value })}
+                          placeholder="Interested in inviting author Sandeep Sahni for a session..."
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section E: Contact Form Titles & Labels */}
+                  <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-4">
+                    <h3 className="font-serif text-base font-bold text-[#0B192C] flex items-center gap-2 border-b border-stone-100 pb-3">
+                      <Send className="w-4 h-4 text-[#C5A059]" />
+                      <span>Contact Form Text &amp; Confirmation</span>
+                    </h3>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">Form Heading</label>
+                        <input
+                          type="text"
+                          value={contactSettings.contactFormHeading}
+                          onChange={(e) => setContactSettings({ ...contactSettings, contactFormHeading: e.target.value })}
+                          placeholder="Send Us a Message"
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl font-bold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">Submit Button Text</label>
+                        <input
+                          type="text"
+                          value={contactSettings.contactFormSubmitText}
+                          onChange={(e) => setContactSettings({ ...contactSettings, contactFormSubmitText: e.target.value })}
+                          placeholder="Transmit Official Communication"
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl font-medium"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <label className="block font-bold text-stone-700 mb-1">Form Subtitle</label>
+                        <input
+                          type="text"
+                          value={contactSettings.contactFormSubheading}
+                          onChange={(e) => setContactSettings({ ...contactSettings, contactFormSubheading: e.target.value })}
+                          placeholder="Fill in the form below and we will get back to you promptly."
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">Success Message Heading</label>
+                        <input
+                          type="text"
+                          value={contactSettings.contactSuccessHeading}
+                          onChange={(e) => setContactSettings({ ...contactSettings, contactSuccessHeading: e.target.value })}
+                          placeholder="Message Sent Successfully!"
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl font-bold text-emerald-800"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-stone-700 mb-1">Success Message Body</label>
+                        <input
+                          type="text"
+                          value={contactSettings.contactSuccessMessage}
+                          onChange={(e) => setContactSettings({ ...contactSettings, contactSuccessMessage: e.target.value })}
+                          placeholder="Thank you for reaching out..."
+                          className="w-full p-2.5 bg-stone-50 border border-stone-300 rounded-xl"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section F: Subject Dropdown Options Manager */}
+                  <div className="bg-white rounded-2xl p-6 border border-stone-200 shadow-sm space-y-4">
+                    <h3 className="font-serif text-base font-bold text-[#0B192C] flex items-center gap-2 border-b border-stone-100 pb-3">
+                      <Sliders className="w-4 h-4 text-[#C5A059]" />
+                      <span>Contact Form Subject Options</span>
+                    </h3>
+
+                    <div className="space-y-3 text-xs">
+                      <p className="text-stone-500">
+                        Customize the options shown in the "Subject" dropdown on the public contact form.
+                      </p>
+
+                      <div className="space-y-2">
+                        {contactSettings.contactSubjectOptions.map((subject, idx) => (
+                          <div key={idx} className="flex items-center gap-2 p-2 bg-stone-50 border border-stone-200 rounded-xl">
+                            <span className="font-mono text-stone-400 font-bold w-6 text-center">{idx + 1}.</span>
+                            <input
+                              type="text"
+                              value={subject}
+                              onChange={(e) => {
+                                const updated = [...contactSettings.contactSubjectOptions];
+                                updated[idx] = e.target.value;
+                                setContactSettings({ ...contactSettings, contactSubjectOptions: updated });
+                              }}
+                              className="flex-1 p-2 bg-white border border-stone-300 rounded-lg text-xs font-medium focus:outline-none focus:border-[#0B192C]"
+                            />
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={() => {
+                                  if (idx === 0) return;
+                                  const updated = [...contactSettings.contactSubjectOptions];
+                                  const temp = updated[idx - 1];
+                                  updated[idx - 1] = updated[idx];
+                                  updated[idx] = temp;
+                                  setContactSettings({ ...contactSettings, contactSubjectOptions: updated });
+                                }}
+                                className="p-1.5 text-stone-500 hover:text-stone-800 disabled:opacity-30 cursor-pointer"
+                                title="Move Up"
+                              >
+                                <ArrowUp className="w-3.5 h-3.5" />
+                              </button>
+
+                              <button
+                                type="button"
+                                disabled={idx === contactSettings.contactSubjectOptions.length - 1}
+                                onClick={() => {
+                                  if (idx === contactSettings.contactSubjectOptions.length - 1) return;
+                                  const updated = [...contactSettings.contactSubjectOptions];
+                                  const temp = updated[idx + 1];
+                                  updated[idx + 1] = updated[idx];
+                                  updated[idx] = temp;
+                                  setContactSettings({ ...contactSettings, contactSubjectOptions: updated });
+                                }}
+                                className="p-1.5 text-stone-500 hover:text-stone-800 disabled:opacity-30 cursor-pointer"
+                                title="Move Down"
+                              >
+                                <ArrowDown className="w-3.5 h-3.5" />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = contactSettings.contactSubjectOptions.filter((_, i) => i !== idx);
+                                  setContactSettings({ ...contactSettings, contactSubjectOptions: updated });
+                                }}
+                                className="p-1.5 text-rose-500 hover:text-rose-700 cursor-pointer"
+                                title="Delete Subject"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-2">
+                        <input
+                          type="text"
+                          value={newSubjectInput}
+                          onChange={(e) => setNewSubjectInput(e.target.value)}
+                          placeholder="e.g. Media & Press Inquiries"
+                          className="flex-1 p-2.5 bg-stone-50 border border-stone-300 rounded-xl text-xs"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!newSubjectInput.trim()) return;
+                            setContactSettings({
+                              ...contactSettings,
+                              contactSubjectOptions: [...contactSettings.contactSubjectOptions, newSubjectInput.trim()],
+                            });
+                            setNewSubjectInput('');
+                          }}
+                          className="px-4 py-2.5 bg-[#0B192C] text-[#C5A059] font-bold text-xs rounded-xl hover:bg-[#152A4A] cursor-pointer shrink-0"
+                        >
+                          + Add Subject
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="submit"
+                      disabled={isSavingContact}
+                      className="px-8 py-3 bg-[#0B192C] text-[#C5A059] hover:bg-[#152A4A] text-xs sm:text-sm font-bold rounded-xl shadow-lg transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                    >
+                      <Save className="w-4 h-4" />
+                      <span>{isSavingContact ? 'Saving to D1...' : 'Save All Contact Settings'}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Right Column: Live Storefront Preview (5 cols) */}
+              <div className="lg:col-span-5 sticky top-24 space-y-4">
+                <div className="bg-stone-900 text-white p-4 rounded-2xl border border-stone-800 shadow-md">
+                  <div className="flex items-center justify-between mb-3 border-b border-stone-800 pb-2">
+                    <span className="font-serif text-xs font-bold text-[#C5A059] flex items-center gap-1.5">
+                      <Eye className="w-4 h-4" />
+                      <span>Live Public Storefront Preview</span>
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                      Syncing
+                    </span>
+                  </div>
+
+                  {/* Simulated Card */}
+                  <div className="bg-white text-stone-900 rounded-2xl p-5 space-y-4 border border-stone-200 text-xs shadow-lg">
+                    <div className="text-center space-y-1">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-[#C5A059]">
+                        {contactSettings.contactEyebrow || 'Sahayak Associates Support Desk'}
+                      </div>
+                      <h4 className="font-serif font-bold text-base text-[#0B192C]">
+                        {contactSettings.contactHeading || 'Get in Touch With Us'}
+                      </h4>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200 flex items-start gap-2.5">
+                        <MapPin className="w-4 h-4 text-[#C5A059] shrink-0 mt-0.5" />
+                        <div>
+                          <div className="font-bold text-[11px] text-stone-900">Office Address</div>
+                          <div className="text-[11px] text-stone-600 line-clamp-2">{contactSettings.officeAddress}</div>
+                        </div>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200 flex items-start gap-2.5">
+                        <Phone className="w-4 h-4 text-[#C5A059] shrink-0 mt-0.5" />
+                        <div>
+                          <div className="font-bold text-[11px] text-stone-900">Phone Support</div>
+                          <div className="text-[11px] font-mono text-stone-800">
+                            {[contactSettings.contactPhone, contactSettings.secondaryContactPhone].filter(Boolean).join(' / ')}
+                          </div>
+                          <div className="text-[9px] text-stone-400">{contactSettings.businessHours}</div>
+                        </div>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200 flex items-start gap-2.5">
+                        <Mail className="w-4 h-4 text-[#C5A059] shrink-0 mt-0.5" />
+                        <div>
+                          <div className="font-bold text-[11px] text-stone-900">Email Address</div>
+                          <div className="text-[11px] font-mono text-stone-800">{contactSettings.contactEmail}</div>
+                          <div className="text-[9px] text-stone-400">{contactSettings.contactResponseTime}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="w-full py-2.5 px-3 rounded-xl bg-emerald-600 text-white font-bold text-[11px] flex items-center justify-center gap-2">
+                      <MessageCircle className="w-3.5 h-3.5" />
+                      <span>{contactSettings.whatsappButtonText || 'Chat With Us on WhatsApp'}</span>
+                    </div>
+
+                    <div className="bg-[#0B192C] text-white p-3 rounded-xl border border-[#C5A059]/40 space-y-1">
+                      <div className="font-serif font-bold text-[11px] text-[#C5A059]">
+                        {contactSettings.authorSessionsHeading || 'Author Sessions & Book Signings'}
+                      </div>
+                      <div className="text-[10px] text-stone-300 line-clamp-2">
+                        {contactSettings.authorSessionsText}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

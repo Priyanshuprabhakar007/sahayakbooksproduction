@@ -87,7 +87,8 @@ export const QuickViewModal: React.FC = () => {
         <button
           id="close-quickview-btn"
           onClick={closeQuickView}
-          className="absolute top-4 right-4 z-20 p-2 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 transition-colors"
+          className="absolute top-4 right-4 z-20 p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 transition-colors cursor-pointer"
+          aria-label="Close modal"
         >
           <X className="w-5 h-5" />
         </button>

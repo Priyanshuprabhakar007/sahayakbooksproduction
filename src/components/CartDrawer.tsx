@@ -77,7 +77,8 @@ export const CartDrawer: React.FC = () => {
           <button
             id="close-cart-drawer-btn"
             onClick={() => setIsCartOpen(false)}
-            className="p-1.5 rounded-full hover:bg-white/10 text-stone-300 hover:text-white transition-colors"
+            className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full hover:bg-white/10 text-stone-300 hover:text-white transition-colors cursor-pointer"
+            aria-label="Close cart"
           >
             <X className="w-5 h-5" />
           </button>
@@ -162,21 +163,23 @@ export const CartDrawer: React.FC = () => {
 
                   <div className="flex items-center justify-between mt-2">
                     {/* Quantity Selector */}
-                    <div className="flex items-center border border-stone-300 rounded-md bg-white">
+                    <div className="flex items-center border border-stone-300 rounded-lg bg-white overflow-hidden">
                       <button
                         onClick={() => updateCartQuantity(item.bookId, item.format, item.quantity - 1)}
-                        className="p-1 hover:bg-stone-100 text-stone-600"
+                        className="px-2.5 py-1.5 min-h-[36px] min-w-[36px] flex items-center justify-center hover:bg-stone-100 text-stone-600 transition-colors cursor-pointer"
+                        aria-label="Decrease quantity"
                       >
-                        <Minus className="w-3 h-3" />
+                        <Minus className="w-3.5 h-3.5" />
                       </button>
-                      <span className="px-2 text-xs font-mono font-bold text-stone-800">
+                      <span className="px-3 text-xs font-mono font-bold text-stone-800">
                         {item.quantity}
                       </span>
                       <button
                         onClick={() => updateCartQuantity(item.bookId, item.format, item.quantity + 1)}
-                        className="p-1 hover:bg-stone-100 text-stone-600"
+                        className="px-2.5 py-1.5 min-h-[36px] min-w-[36px] flex items-center justify-center hover:bg-stone-100 text-stone-600 transition-colors cursor-pointer"
+                        aria-label="Increase quantity"
                       >
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-3.5 h-3.5" />
                       </button>
                     </div>
 

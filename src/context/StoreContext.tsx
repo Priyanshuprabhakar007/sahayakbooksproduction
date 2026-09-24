@@ -475,7 +475,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [orders, setOrders] = useState<Order[]>(() => {
     const saved = localStorage.getItem('sahayak_orders');
-    return saved ? JSON.parse(saved) : DEMO_ORDERS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [enquiries, setEnquiries] = useState<ContactEnquiry[]>(() => {
@@ -490,7 +490,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [allUsers, setAllUsers] = useState<UserProfile[]>(() => {
     const saved = localStorage.getItem('sahayak_all_users');
-    return saved ? JSON.parse(saved) : INITIAL_USERS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => {
@@ -500,24 +500,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>(() => {
     const saved = localStorage.getItem('sahayak_subscribers');
-    return saved
-      ? JSON.parse(saved)
-      : [
-          { id: 'sub-1', email: 'scholar.arun@gmail.com', date: '2026-02-20', source: 'Home Footer' },
-          { id: 'sub-2', email: 'legal.practitioner@bar.in', date: '2026-02-24', source: 'Editorial Banner' },
-        ];
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [analyticsEvents, setAnalyticsEvents] = useState<AnalyticsEvent[]>(() => {
     const saved = localStorage.getItem('sahayak_analytics');
-    return saved
-      ? JSON.parse(saved)
-      : [
-          { id: 'ev-1', type: 'pageview', target: 'Home', timestamp: new Date(Date.now() - 3600000).toISOString(), device: 'desktop' },
-          { id: 'ev-2', type: 'view_book', target: 'The Art of Strategic Governance', timestamp: new Date(Date.now() - 1800000).toISOString(), device: 'desktop' },
-          { id: 'ev-3', type: 'add_to_cart', target: 'The Art of Strategic Governance', timestamp: new Date(Date.now() - 900000).toISOString(), device: 'mobile' },
-          { id: 'ev-4', type: 'click', target: 'Explore Books Hero CTA', timestamp: new Date().toISOString(), device: 'desktop' },
-        ];
+    return saved ? JSON.parse(saved) : [];
   });
 
   // Session Token State
@@ -525,22 +513,69 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return localStorage.getItem('sahayak_session_token');
   });
 
-  // Current Customer Session
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
-    const saved = localStorage.getItem('sahayak_current_user');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return null;
-      }
-    }
-    return null;
-  });
+  // Current Customer Session - Server token is authoritative source of truth
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
   // Google Merchant Center & Shopping State
   const [googleMerchantStatus, setGoogleMerchantStatus] = useState<any | null>(null);
   const [googleSyncLogs, setGoogleSyncLogs] = useState<GoogleMerchantSyncLog[]>([]);
+
+  // Helper to sync local guest cart into user's D1 cart and load user's cart & orders
+  const syncAndFetchUserCartAndOrders = async (token: string) => {
+    const guestCartRaw = localStorage.getItem('sahayak_cart');
+    if (guestCartRaw) {
+      try {
+        const guestCart: CartItem[] = JSON.parse(guestCartRaw);
+        if (Array.isArray(guestCart) && guestCart.length > 0) {
+          for (const item of guestCart) {
+            await fetch('/api/cart/items', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                bookId: item.bookId,
+                format: item.format,
+                quantity: item.quantity,
+              }),
+            }).catch(() => {});
+          }
+        }
+      } catch (e) {
+        console.warn('Guest cart merge error:', e);
+      }
+      localStorage.removeItem('sahayak_cart');
+    }
+
+    try {
+      const cartRes = await fetch('/api/cart', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (cartRes.ok) {
+        const cartData = await cartRes.json();
+        if (cartData.success && Array.isArray(cartData.items)) {
+          setCart(cartData.items);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to fetch user cart:', e);
+    }
+
+    try {
+      const ordersRes = await fetch('/api/orders/my', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (ordersRes.ok) {
+        const ordersData = await ordersRes.json();
+        if (ordersData.success && Array.isArray(ordersData.orders)) {
+          setOrders(ordersData.orders);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to fetch user orders:', e);
+    }
+  };
 
   // Auto-verify session with server on boot
   useEffect(() => {
@@ -563,18 +598,33 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               setAdminUser(null);
               localStorage.removeItem('sahayak_admin_user');
             }
+            syncAndFetchUserCartAndOrders(sessionToken);
           } else {
             setSessionToken(null);
             setCurrentUser(null);
             setAdminUser(null);
+            setCart([]);
+            setOrders([]);
             localStorage.removeItem('sahayak_session_token');
             localStorage.removeItem('sahayak_current_user');
             localStorage.removeItem('sahayak_admin_user');
           }
         })
         .catch(() => {
-          // Keep cached user if offline
+          setSessionToken(null);
+          setCurrentUser(null);
+          setAdminUser(null);
+          setCart([]);
+          setOrders([]);
+          localStorage.removeItem('sahayak_session_token');
+          localStorage.removeItem('sahayak_current_user');
+          localStorage.removeItem('sahayak_admin_user');
         });
+    } else {
+      setCurrentUser(null);
+      setAdminUser(null);
+      localStorage.removeItem('sahayak_current_user');
+      localStorage.removeItem('sahayak_admin_user');
     }
   }, [sessionToken]);
 
@@ -587,7 +637,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Wishlist & Cart
   const [wishlist, setWishlist] = useState<string[]>(() => {
     const saved = localStorage.getItem('sahayak_wishlist');
-    return saved ? JSON.parse(saved) : ['book-1', 'book-4'];
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -983,52 +1033,121 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const cartTotal = Math.max(0, cartSubtotal + cartShipping - cartDiscount);
 
   // Cart operations
-  const addToCart = (book: Book, format: BookFormat = 'Paperback', quantity: number = 1) => {
-    setCart((prevCart) => {
-      const existingIndex = prevCart.findIndex(
-        (item) => item.bookId === book.id && item.format === format
-      );
-      if (existingIndex > -1) {
-        const updated = [...prevCart];
-        updated[existingIndex].quantity += quantity;
-        return updated;
+  const addToCart = async (book: Book, format: BookFormat = 'Paperback', quantity: number = 1) => {
+    if (sessionToken && currentUser) {
+      try {
+        const res = await fetch('/api/cart/items', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionToken}`,
+          },
+          body: JSON.stringify({ bookId: book.id, format, quantity }),
+        });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.items)) {
+          setCart(data.items);
+        }
+      } catch (e) {
+        console.warn('Failed to add item to server cart:', e);
       }
-      return [
-        ...prevCart,
-        {
-          bookId: book.id,
-          title: book.title,
-          authorName: book.authorName,
-          coverImage: book.coverImage,
-          format,
-          price: book.price,
-          originalPrice: book.originalPrice,
-          quantity,
-          inStock: book.inStock,
-        },
-      ];
-    });
+    } else {
+      setCart((prevCart) => {
+        const existingIndex = prevCart.findIndex(
+          (item) => item.bookId === book.id && item.format === format
+        );
+        if (existingIndex > -1) {
+          const updated = [...prevCart];
+          updated[existingIndex].quantity += quantity;
+          return updated;
+        }
+        return [
+          ...prevCart,
+          {
+            bookId: book.id,
+            title: book.title,
+            authorName: book.authorName,
+            coverImage: book.coverImage,
+            format,
+            price: book.price,
+            originalPrice: book.originalPrice,
+            quantity,
+            inStock: book.inStock,
+          },
+        ];
+      });
+    }
     trackEvent('add_to_cart', book.title, { format, quantity, price: book.price });
     setIsCartOpen(true);
   };
 
-  const updateCartQuantity = (bookId: string, format: BookFormat, quantity: number) => {
+  const updateCartQuantity = async (bookId: string, format: BookFormat, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(bookId, format);
       return;
     }
-    setCart((prev) =>
-      prev.map((item) =>
-        item.bookId === bookId && item.format === format ? { ...item, quantity } : item
-      )
-    );
+    if (sessionToken && currentUser) {
+      try {
+        const res = await fetch('/api/cart/items', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionToken}`,
+          },
+          body: JSON.stringify({ bookId, format, quantity }),
+        });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.items)) {
+          setCart(data.items);
+        }
+      } catch (e) {
+        console.warn('Failed to update server cart quantity:', e);
+      }
+    } else {
+      setCart((prev) =>
+        prev.map((item) =>
+          item.bookId === bookId && item.format === format ? { ...item, quantity } : item
+        )
+      );
+    }
   };
 
-  const removeFromCart = (bookId: string, format: BookFormat) => {
-    setCart((prev) => prev.filter((item) => !(item.bookId === bookId && item.format === format)));
+  const removeFromCart = async (bookId: string, format: BookFormat) => {
+    if (sessionToken && currentUser) {
+      try {
+        const res = await fetch('/api/cart/items', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${sessionToken}`,
+          },
+          body: JSON.stringify({ bookId, format }),
+        });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.items)) {
+          setCart(data.items);
+        }
+      } catch (e) {
+        console.warn('Failed to remove item from server cart:', e);
+      }
+    } else {
+      setCart((prev) => prev.filter((item) => !(item.bookId === bookId && item.format === format)));
+    }
   };
 
-  const clearCart = () => {
+  const clearCart = async () => {
+    if (sessionToken && currentUser) {
+      try {
+        await fetch('/api/cart', {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${sessionToken}`,
+          },
+        });
+      } catch (e) {
+        console.warn('Failed to clear server cart:', e);
+      }
+    }
     setCart([]);
     setAppliedCoupon(null);
   };
@@ -1248,6 +1367,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (json.sessionToken) {
           setSessionToken(json.sessionToken);
           localStorage.setItem('sahayak_session_token', json.sessionToken);
+          await syncAndFetchUserCartAndOrders(json.sessionToken);
         }
         if (json.user) {
           const customerUser = { ...json.user, role: 'CUSTOMER' as const };
@@ -1277,6 +1397,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (json.sessionToken) {
           setSessionToken(json.sessionToken);
           localStorage.setItem('sahayak_session_token', json.sessionToken);
+          await syncAndFetchUserCartAndOrders(json.sessionToken);
         }
         if (json.user) {
           setCurrentUser(json.user);
@@ -1317,9 +1438,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setSessionToken(null);
     setCurrentUser(null);
     setAdminUser(null);
+    setCart([]);
+    setOrders([]);
     localStorage.removeItem('sahayak_session_token');
     localStorage.removeItem('sahayak_current_user');
     localStorage.removeItem('sahayak_admin_user');
+    localStorage.removeItem('sahayak_cart');
   };
 
   const forgotPassword = async (email: string) => {
@@ -1513,123 +1637,49 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Orders
-  const placeOrder = (customer: Order['customer'], paymentMethod: PaymentMethod, orderNotes?: string): Order => {
-    const orderNumber = `SB-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
-    const newOrder: Order = {
-      id: `ord-${Date.now()}`,
-      orderNumber,
-      date: new Date().toISOString(),
-      customer,
-      items: [...cart],
-      subtotal: cartSubtotal,
-      shipping: cartShipping,
-      discount: cartDiscount,
-      couponCode: appliedCoupon?.code,
-      total: cartTotal,
-      paymentMethod,
-      paymentStatus: paymentMethod === 'Cash on Delivery' ? 'Pending' : 'Paid',
-      orderStatus: 'Order Confirmed',
-      orderNotes,
-      trackingSteps: [
-        {
-          status: 'Order Confirmed',
-          label: 'Order Confirmed',
-          description: 'Order verified & recorded by Sahayak Central Desk',
-          timestamp: 'Just now',
-          completed: true,
-          current: true,
-        },
-        {
-          status: 'Processing',
-          label: 'Processing Order',
-          description: 'Inventory reserved from Sahayak Central Publishing Depot',
-          completed: false,
-          current: false,
-        },
-        {
-          status: 'Packed',
-          label: 'Editorial Packaging',
-          description: 'Custom moisture-proof luxury sleeves',
-          completed: false,
-          current: false,
-        },
-        {
-          status: 'Shipped',
-          label: 'In Transit',
-          description: 'Dispatched via national air express courier partner',
-          completed: false,
-          current: false,
-        },
-        {
-          status: 'Out for Delivery',
-          label: 'Out for Delivery',
-          description: 'Courier agent scheduled for final doorstep delivery',
-          completed: false,
-          current: false,
-        },
-        {
-          status: 'Delivered',
-          label: 'Delivered',
-          description: 'Consignment handed over to recipient',
-          completed: false,
-          current: false,
-        },
-      ],
-      estimatedDelivery: 'Within 3-5 Business Days',
-      courierPartner: 'BlueDart / Delhivery Express',
-      trackingNumber: `EXP-${Math.floor(10000000 + Math.random() * 90000000)}`,
-      ebookDownloads: cart
-        .filter((item) => item.format === 'eBook')
-        .map((item) => ({
-          bookId: item.bookId,
-          title: item.title,
-          downloadUrl: `#ebook-${item.bookId}-secure-pdf`,
-          expiryDate: 'Lifetime Access',
-        })),
-    };
+  const placeOrder = async (
+    customer: Order['customer'],
+    paymentMethod: PaymentMethod,
+    orderNotes?: string
+  ): Promise<Order> => {
+    if (!sessionToken || !currentUser) {
+      throw new Error('You must be signed in to place an order.');
+    }
 
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${sessionToken}`,
+      },
+      body: JSON.stringify({
+        customerInfo: customer,
+        paymentMethod,
+        couponCode: appliedCoupon?.code,
+        orderNotes,
+      }),
+    });
+
+    const json = await res.json();
+    if (!res.ok || !json.success || !json.order) {
+      throw new Error(json.error || 'Failed to place order on server.');
+    }
+
+    const newOrder: Order = json.order;
     setOrders((prev) => [newOrder, ...prev]);
+    setCart([]);
+    setAppliedCoupon(null);
 
-    // Inventory reduction
-    setBooks((prevBooks) =>
-      prevBooks.map((b) => {
-        const cartItem = cart.find((ci) => ci.bookId === b.id);
-        if (cartItem) {
-          const newStock = Math.max(0, b.stockCount - cartItem.quantity);
-          const newStatus =
-            newStock === 0 ? 'Out of Stock' : newStock <= (settings.lowStockThreshold || 10) ? 'Low Stock' : 'In Stock';
-          return {
-            ...b,
-            stockCount: newStock,
-            inStock: newStock > 0,
-            stockStatus: newStatus as any,
-            purchasesCount: (b.purchasesCount || 0) + cartItem.quantity,
-          };
-        }
-        return b;
-      })
-    );
-
-    // Update customer history
     if (currentUser) {
-      const userOrders = [...currentUser.orderIds, newOrder.id];
-      const newEbooks = newOrder.ebookDownloads?.map((eb) => ({
-        bookId: eb.bookId,
-        title: eb.title,
-        downloadUrl: eb.downloadUrl,
-        purchasedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      })) || [];
-
+      const userOrders = [...(currentUser.orderIds || []), newOrder.id];
       setCurrentUser({
         ...currentUser,
         orderIds: userOrders,
-        savedEbooks: [...currentUser.savedEbooks, ...newEbooks],
       });
     }
 
-    addAuditLog('New Order Placed', orderNumber, `Customer: ${customer.fullName} | Amount: ₹${cartTotal}`);
-    clearCart();
-    trackEvent('checkout_completed', `Order Placed: ${orderNumber}`, { total: cartTotal, itemsCount: cart.length });
+    addAuditLog('New Order Placed', newOrder.orderNumber, `Customer: ${customer.fullName} | Amount: ₹${newOrder.total}`);
+    trackEvent('checkout_completed', `Order Placed: ${newOrder.orderNumber}`, { total: newOrder.total, itemsCount: newOrder.items.length });
     return newOrder;
   };
 
@@ -1915,7 +1965,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const reorderBooks = (newBooks: Book[]) => {
     setBooks(newBooks);
     addAuditLog('Books Reordered', 'Books Catalog', 'Catalog display ordering updated');
-    persistToServer('/api/db', 'POST', { books: newBooks });
   };
 
   // Settings & Content
@@ -2012,36 +2061,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       ...couponData,
       id: `coup-${Date.now()}`,
     };
-    setCoupons((prev) => {
-      const updated = [newCoupon, ...prev];
-      persistToServer('/api/db', 'POST', { coupons: updated });
-      return updated;
-    });
+    setCoupons((prev) => [newCoupon, ...prev]);
     addAuditLog('Coupon Created', newCoupon.code, `Discount: ${newCoupon.discountValue}${newCoupon.discountType === 'percentage' ? '%' : '₹'}`);
   };
 
   const updateCoupon = (updatedCoupon: Coupon) => {
-    setCoupons((prev) => {
-      const updated = prev.map((c) => (c.id === updatedCoupon.id ? updatedCoupon : c));
-      persistToServer('/api/db', 'POST', { coupons: updated });
-      return updated;
-    });
+    setCoupons((prev) => prev.map((c) => (c.id === updatedCoupon.id ? updatedCoupon : c)));
   };
 
   const deleteCoupon = (couponId: string) => {
-    setCoupons((prev) => {
-      const updated = prev.filter((c) => c.id !== couponId);
-      persistToServer('/api/db', 'POST', { coupons: updated });
-      return updated;
-    });
+    setCoupons((prev) => prev.filter((c) => c.id !== couponId));
   };
 
   const toggleCoupon = (couponId: string) => {
-    setCoupons((prev) => {
-      const updated = prev.map((c) => (c.id === couponId ? { ...c, isActive: !c.isActive } : c));
-      persistToServer('/api/db', 'POST', { coupons: updated });
-      return updated;
-    });
+    setCoupons((prev) => prev.map((c) => (c.id === couponId ? { ...c, isActive: !c.isActive } : c)));
   };
 
   // Media Management
@@ -2091,22 +2124,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const deleteMediaItem = (id: string) => {
     const target = mediaItems.find((m) => m.id === id);
-    setMediaItems((prev) => {
-      const updated = prev.filter((m) => m.id !== id);
-      persistToServer('/api/db', 'POST', { mediaItems: updated });
-      return updated;
-    });
+    setMediaItems((prev) => prev.filter((m) => m.id !== id));
+    persistToServer(`/api/media/${id}`, 'DELETE', {});
     if (target) {
       addAuditLog('Media Deleted', target.name, `Removed media asset ID: ${id}`);
     }
   };
 
   const replaceMediaItem = (id: string, newUrl: string) => {
-    setMediaItems((prev) => {
-      const updated = prev.map((m) => (m.id === id ? { ...m, url: newUrl } : m));
-      persistToServer('/api/db', 'POST', { mediaItems: updated });
-      return updated;
-    });
+    setMediaItems((prev) => prev.map((m) => (m.id === id ? { ...m, url: newUrl } : m)));
     addAuditLog('Media File Replaced', id, `Updated file asset to: ${newUrl.slice(0, 40)}...`);
   };
 
@@ -2198,12 +2224,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const res = await fetch(`/api/admin/google-merchant/sync-book/${bookId}`, { method: 'POST' });
       const data = await res.json();
-      const dbRes = await fetch('/api/db');
-      if (dbRes.ok) {
-        const dbJson = await dbRes.json();
-        if (dbJson.data?.books) setBooks(dbJson.data.books);
-        if (dbJson.data?.googleSyncLogs) setGoogleSyncLogs(dbJson.data.googleSyncLogs);
-      }
       fetchGoogleMerchantStatus();
       trackEvent('google_product_sync', `Book ${bookId}`, { success: data.success });
       return data;
@@ -2216,12 +2236,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       const res = await fetch(`/api/admin/google-merchant/remove-book/${bookId}`, { method: 'POST' });
       const data = await res.json();
-      const dbRes = await fetch('/api/db');
-      if (dbRes.ok) {
-        const dbJson = await dbRes.json();
-        if (dbJson.data?.books) setBooks(dbJson.data.books);
-        if (dbJson.data?.googleSyncLogs) setGoogleSyncLogs(dbJson.data.googleSyncLogs);
-      }
       fetchGoogleMerchantStatus();
       return data;
     } catch (err: any) {
@@ -2237,12 +2251,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         body: JSON.stringify({ bookIds }),
       });
       const data = await res.json();
-      const dbRes = await fetch('/api/db');
-      if (dbRes.ok) {
-        const dbJson = await dbRes.json();
-        if (dbJson.data?.books) setBooks(dbJson.data.books);
-        if (dbJson.data?.googleSyncLogs) setGoogleSyncLogs(dbJson.data.googleSyncLogs);
-      }
       fetchGoogleMerchantStatus();
       return data;
     } catch (err: any) {

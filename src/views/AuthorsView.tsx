@@ -1,6 +1,7 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
 import { BookCard } from '../components/BookCard';
+import { RevealOnScroll } from '../components/RevealOnScroll';
 import {
   Award,
   BookOpen,
@@ -23,56 +24,59 @@ export const AuthorsView: React.FC = () => {
   return (
     <div id="authors-roster-page" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
       {/* Header */}
-      <div className="text-center max-w-3xl mx-auto space-y-3">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C5A059]/10 text-xs font-bold uppercase tracking-wider text-[#C5A059] border border-[#C5A059]/20">
-          <Award className="w-4 h-4" />
-          <span>The Sahayak Scholarly Faculty</span>
+      <RevealOnScroll direction="up">
+        <div className="text-center max-w-3xl mx-auto space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C5A059]/10 text-xs font-bold uppercase tracking-wider text-[#C5A059] border border-[#C5A059]/20">
+            <Award className="w-4 h-4" />
+            <span>The Sahayak Scholarly Faculty</span>
+          </div>
+          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-[#0B192C]">
+            Distinguished Authors & Jurists
+          </h1>
+          <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+            Meet the experienced legal practitioners, retired civil servants, monetary economists, and executive deans who author Sahayak Books.
+          </p>
         </div>
-        <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-[#0B192C]">
-          Distinguished Authors & Jurists
-        </h1>
-        <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-          Meet the experienced legal practitioners, retired civil servants, monetary economists, and executive deans who author Sahayak Books.
-        </p>
-      </div>
+      </RevealOnScroll>
 
       {/* Authors Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-        {authors.map((author) => (
-          <div
-            key={author.id}
-            id={`author-card-${author.id}`}
-            onClick={() => navigate(`/authors/${author.slug}`)}
-            className="group bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 hover:border-[#C5A059] shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer flex flex-col justify-between"
-          >
-            <div className="text-center">
-              <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full mx-auto mb-4 overflow-hidden border-2 border-[#C5A059] shadow-lg group-hover:scale-105 transition-transform duration-300">
-                <img
-                  src={author.avatar}
-                  alt={author.name}
-                  className="w-full h-full object-cover"
-                />
+        {authors.map((author, idx) => (
+          <RevealOnScroll key={author.id} direction="up" delay={idx * 0.08}>
+            <div
+              id={`author-card-${author.id}`}
+              onClick={() => navigate(`/authors/${author.slug}`)}
+              className="group bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 hover:border-[#C5A059] shadow-sm hover:shadow-2xl transition-all duration-300 cursor-pointer flex flex-col justify-between h-full"
+            >
+              <div className="text-center">
+                <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full mx-auto mb-4 overflow-hidden border-2 border-[#C5A059] shadow-lg group-hover:scale-105 transition-transform duration-300">
+                  <img
+                    src={author.avatar}
+                    alt={author.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                <h2 className="font-serif text-xl font-bold text-[#0B192C] group-hover:text-[#C5A059] transition-colors">
+                  {author.name}
+                </h2>
+                <p className="text-xs text-[#C5A059] font-semibold mt-1">{author.title}</p>
+                <p className="text-xs text-stone-600 mt-3 line-clamp-3 leading-relaxed">
+                  {author.bio}
+                </p>
               </div>
 
-              <h2 className="font-serif text-xl font-bold text-[#0B192C] group-hover:text-[#C5A059] transition-colors">
-                {author.name}
-              </h2>
-              <p className="text-xs text-[#C5A059] font-semibold mt-1">{author.title}</p>
-              <p className="text-xs text-stone-600 mt-3 line-clamp-3 leading-relaxed">
-                {author.bio}
-              </p>
+              <div className="pt-5 mt-4 border-t border-stone-100 flex items-center justify-between text-xs text-stone-500">
+                <span className="font-mono font-bold text-stone-800">
+                  {author.publishedBookCount || 1} Published Books
+                </span>
+                <span className="text-[#0B192C] group-hover:text-[#C5A059] font-bold flex items-center gap-1">
+                  <span>View Profile</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </span>
+              </div>
             </div>
-
-            <div className="pt-5 mt-4 border-t border-stone-100 flex items-center justify-between text-xs text-stone-500">
-              <span className="font-mono font-bold text-stone-800">
-                {author.publishedBookCount || 1} Published Books
-              </span>
-              <span className="text-[#0B192C] group-hover:text-[#C5A059] font-bold flex items-center gap-1">
-                <span>View Profile</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </span>
-            </div>
-          </div>
+          </RevealOnScroll>
         ))}
       </div>
     </div>

@@ -86,7 +86,7 @@ export const WishlistDrawer: React.FC = () => {
           </div>
           <button
             onClick={() => setIsWishlistOpen(false)}
-            className="p-1.5 rounded-lg text-stone-400 hover:text-[#FAF7F2] hover:bg-white/10 transition-colors cursor-pointer"
+            className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-stone-400 hover:text-[#FAF7F2] hover:bg-white/10 transition-colors cursor-pointer"
             aria-label="Close Wishlist"
           >
             <X className="w-5 h-5" />
@@ -203,7 +203,7 @@ export const WishlistDrawer: React.FC = () => {
 
                         <button
                           onClick={() => handleMoveToCart(book)}
-                          className="px-3 py-1.5 rounded-lg bg-[#0B192C] text-[#C5A059] hover:bg-[#152A4A] text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer shrink-0"
+                          className="px-3.5 py-2 min-h-[38px] rounded-xl bg-[#0B192C] text-[#C5A059] hover:bg-[#152A4A] text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer shrink-0"
                           title="Move to Cart"
                         >
                           <ShoppingBag className="w-3.5 h-3.5" />

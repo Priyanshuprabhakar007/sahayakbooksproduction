@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import { BookCard } from '../components/BookCard';
+import { RevealOnScroll } from '../components/RevealOnScroll';
 import {
   BookOpen,
   Calendar,
@@ -30,59 +31,63 @@ export const BlogsView: React.FC = () => {
   return (
     <div id="blogs-page" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
       {/* Header */}
-      <div className="text-center max-w-3xl mx-auto space-y-3">
-        <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#C5A059]">
-          <BookOpen className="w-4 h-4" />
-          <span>The Sahayak Think-Tank</span>
+      <RevealOnScroll direction="up">
+        <div className="text-center max-w-3xl mx-auto space-y-3">
+          <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#C5A059]">
+            <BookOpen className="w-4 h-4" />
+            <span>The Sahayak Think-Tank</span>
+          </div>
+          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-[#0B192C]">
+            Insights & Scholarly Dispatches
+          </h1>
+          <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+            Critical essays, statutory breakdowns, monetary policy analyses, and executive leadership frameworks published by Sahayak Fellows.
+          </p>
         </div>
-        <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-[#0B192C]">
-          Insights & Scholarly Dispatches
-        </h1>
-        <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-          Critical essays, statutory breakdowns, monetary policy analyses, and executive leadership frameworks published by Sahayak Fellows.
-        </p>
-      </div>
+      </RevealOnScroll>
 
       {/* Featured Editorial Article */}
       {featuredBlog && (
-        <div
-          onClick={() => navigate(`/blogs/${featuredBlog.slug}`)}
-          className="bg-[#0B192C] text-[#FAF7F2] rounded-3xl overflow-hidden border border-[#C5A059]/40 shadow-2xl grid grid-cols-1 lg:grid-cols-12 cursor-pointer group"
-        >
-          <div className="lg:col-span-6 overflow-hidden">
-            <img
-              src={featuredBlog.featuredImage}
-              alt={featuredBlog.title}
-              className="w-full h-full min-h-[320px] object-cover group-hover:scale-105 transition-transform duration-700"
-            />
-          </div>
-          <div className="lg:col-span-6 p-8 sm:p-12 flex flex-col justify-between space-y-6">
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 text-xs text-[#C5A059]">
-                <span className="uppercase font-bold tracking-wider">{featuredBlog.category}</span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5" />
-                  {featuredBlog.readTime}
+        <RevealOnScroll direction="up" delay={0.1}>
+          <div
+            onClick={() => navigate(`/blogs/${featuredBlog.slug}`)}
+            className="bg-[#0B192C] text-[#FAF7F2] rounded-3xl overflow-hidden border border-[#C5A059]/40 shadow-2xl grid grid-cols-1 lg:grid-cols-12 cursor-pointer group"
+          >
+            <div className="lg:col-span-6 overflow-hidden">
+              <img
+                src={featuredBlog.featuredImage}
+                alt={featuredBlog.title}
+                className="w-full h-full min-h-[320px] object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+            </div>
+            <div className="lg:col-span-6 p-8 sm:p-12 flex flex-col justify-between space-y-6">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 text-xs text-[#C5A059]">
+                  <span className="uppercase font-bold tracking-wider">{featuredBlog.category}</span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    {featuredBlog.readTime}
+                  </span>
+                </div>
+                <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold text-white group-hover:text-[#C5A059] transition-colors leading-tight">
+                  {featuredBlog.title}
+                </h2>
+                <p className="text-xs sm:text-sm text-stone-300 leading-relaxed line-clamp-3">
+                  {featuredBlog.excerpt}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between pt-4 border-t border-white/10 text-xs text-stone-400">
+                <span>By {featuredBlog.author} • {featuredBlog.publishDate}</span>
+                <span className="text-[#C5A059] font-bold flex items-center gap-1">
+                  <span>Read Full Essay</span>
+                  <ArrowRight className="w-4 h-4" />
                 </span>
               </div>
-              <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold text-white group-hover:text-[#C5A059] transition-colors leading-tight">
-                {featuredBlog.title}
-              </h2>
-              <p className="text-xs sm:text-sm text-stone-300 leading-relaxed line-clamp-3">
-                {featuredBlog.excerpt}
-              </p>
-            </div>
-
-            <div className="flex items-center justify-between pt-4 border-t border-white/10 text-xs text-stone-400">
-              <span>By {featuredBlog.author} • {featuredBlog.publishDate}</span>
-              <span className="text-[#C5A059] font-bold flex items-center gap-1">
-                <span>Read Full Essay</span>
-                <ArrowRight className="w-4 h-4" />
-              </span>
             </div>
           </div>
-        </div>
+        </RevealOnScroll>
       )}
 
       {/* Tags Filter */}
@@ -91,7 +96,7 @@ export const BlogsView: React.FC = () => {
           <button
             key={tag}
             onClick={() => setSelectedTag(tag)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               selectedTag === tag
                 ? 'bg-[#0B192C] text-[#FAF7F2] shadow-sm'
                 : 'bg-white text-stone-700 border border-stone-200 hover:border-stone-300'
@@ -104,43 +109,44 @@ export const BlogsView: React.FC = () => {
 
       {/* Blogs Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {filteredBlogs.map((blog) => (
-          <article
-            key={blog.id}
-            onClick={() => navigate(`/blogs/${blog.slug}`)}
-            className="bg-white rounded-3xl overflow-hidden border border-stone-200 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group cursor-pointer"
-          >
-            <div>
-              <div className="aspect-[16/10] w-full overflow-hidden bg-stone-100">
-                <img
-                  src={blog.featuredImage}
-                  alt={blog.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <div className="p-6">
-                <div className="flex items-center justify-between text-xs text-stone-500 mb-2">
-                  <span className="text-[#C5A059] font-semibold uppercase text-[11px]">
-                    {blog.category}
-                  </span>
-                  <span>{blog.readTime}</span>
+        {filteredBlogs.map((blog, idx) => (
+          <RevealOnScroll key={blog.id} direction="up" delay={idx * 0.08}>
+            <article
+              onClick={() => navigate(`/blogs/${blog.slug}`)}
+              className="bg-white rounded-3xl overflow-hidden border border-stone-200 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group cursor-pointer h-full"
+            >
+              <div>
+                <div className="aspect-[16/10] w-full overflow-hidden bg-stone-100">
+                  <img
+                    src={blog.featuredImage}
+                    alt={blog.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                 </div>
-                <h3 className="font-serif text-lg font-bold text-[#0B192C] group-hover:text-[#C5A059] transition-colors leading-snug line-clamp-2">
-                  {blog.title}
-                </h3>
-                <p className="text-xs text-stone-600 mt-2 line-clamp-3 leading-relaxed">
-                  {blog.excerpt}
-                </p>
+                <div className="p-6">
+                  <div className="flex items-center justify-between text-xs text-stone-500 mb-2">
+                    <span className="text-[#C5A059] font-semibold uppercase text-[11px]">
+                      {blog.category}
+                    </span>
+                    <span>{blog.readTime}</span>
+                  </div>
+                  <h3 className="font-serif text-lg font-bold text-[#0B192C] group-hover:text-[#C5A059] transition-colors leading-snug line-clamp-2">
+                    {blog.title}
+                  </h3>
+                  <p className="text-xs text-stone-600 mt-2 line-clamp-3 leading-relaxed">
+                    {blog.excerpt}
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div className="px-6 pb-6 pt-2 flex items-center justify-between text-xs border-t border-stone-100 text-stone-500">
-              <span>By {blog.author}</span>
-              <span className="text-[#0B192C] group-hover:text-[#C5A059] font-bold">
-                Read Article →
-              </span>
-            </div>
-          </article>
+              <div className="px-6 pb-6 pt-2 flex items-center justify-between text-xs border-t border-stone-100 text-stone-500">
+                <span>By {blog.author}</span>
+                <span className="text-[#0B192C] group-hover:text-[#C5A059] font-bold">
+                  Read Article →
+                </span>
+              </div>
+            </article>
+          </RevealOnScroll>
         ))}
       </div>
     </div>

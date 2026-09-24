@@ -23,6 +23,8 @@ import {
   Clock,
   Trash2,
   Download,
+  Plus,
+  Minus,
 } from 'lucide-react';
 
 export const CustomerAccountView: React.FC = () => {
@@ -43,11 +45,19 @@ export const CustomerAccountView: React.FC = () => {
     toggleSaveBook,
     toggleSaveArticle,
     addToCart,
+    cart,
+    updateCartQuantity,
+    removeFromCart,
+    cartSubtotal,
+    cartDiscount,
+    cartShipping,
+    cartTotal,
     currentPath,
   } = useStore();
 
-  // Determine active sub-tab from path (e.g. /account/orders, /account/saved-books, /account/saved-articles, /account/reviews, /account/security)
+  // Determine active sub-tab from path (e.g. /account/cart, /account/orders, /account/saved-books, /account/saved-articles, /account/reviews, /account/security)
   const getSubTab = () => {
+    if (currentPath.includes('/cart')) return 'cart';
     if (currentPath.includes('/orders')) return 'orders';
     if (
       currentPath.includes('/saved-books') ||
@@ -164,10 +174,8 @@ export const CustomerAccountView: React.FC = () => {
     }
   };
 
-  // Saved books filtering (combines account savedBookIds and localStorage/store wishlist)
-  const userSavedBooks = books.filter(
-    (b) => savedBookIds.includes(b.id) || wishlist.includes(b.id)
-  );
+  // Saved books filtering - Uses D1 savedBookIds as authoritative source
+  const userSavedBooks = books.filter((b) => savedBookIds.includes(b.id));
 
   // Saved articles filtering
   const userSavedArticles = blogs.filter((b) => savedArticleIds.includes(b.id));
@@ -183,6 +191,16 @@ export const CustomerAccountView: React.FC = () => {
       o.customer.email.toLowerCase() === currentUser.email.toLowerCase() ||
       currentUser.orderIds?.includes(o.id)
   );
+
+  const totalCartQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  const formattedRegDate = currentUser.createdAt
+    ? new Date(currentUser.createdAt).toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : (currentUser.registrationDate || '');
 
   return (
     <div id="customer-account-page" className="min-h-screen bg-[#FDFBF7] py-10 px-4 sm:px-6 lg:px-8">
@@ -203,9 +221,9 @@ export const CustomerAccountView: React.FC = () => {
               <div className="flex items-center gap-3 flex-wrap">
                 <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#0B192C]">{currentUser.name}</h1>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#F4EBE1] text-[#0B192C] border border-[#EADBCE]">
-                  <Sparkles className="w-3.5 h-3.5 text-[#C5A059]" /> Verified Reader
+                  <Sparkles className="w-3.5 h-3.5 text-[#C5A059]" /> Registered Reader
                 </span>
-                {currentUser.emailVerified && (
+                {currentUser.emailVerified === true && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Email Verified
                   </span>
@@ -215,7 +233,7 @@ export const CustomerAccountView: React.FC = () => {
                 <Mail className="w-4 h-4 text-gray-400" /> {currentUser.email}
               </p>
               <p className="text-xs text-gray-400 font-sans mt-1 flex items-center gap-2">
-                <Clock className="w-3.5 h-3.5" /> Registered Member since {currentUser.registrationDate || '2026'}
+                <Clock className="w-3.5 h-3.5" /> Registered Member since {formattedRegDate || 'Recent'}
               </p>
             </div>
           </div>
@@ -236,38 +254,60 @@ export const CustomerAccountView: React.FC = () => {
 
         {/* Dashboard Grid & Navigation */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar Navigation */}
-          <div className="lg:col-span-1 space-y-2 bg-white p-4 rounded-2xl border border-[#EADBCE] shadow-sm h-fit">
+          {/* Sidebar Navigation - Horizontal scroll on mobile, vertical list on lg */}
+          <div className="lg:col-span-1 flex lg:flex-col overflow-x-auto lg:overflow-x-visible gap-2 bg-white p-3 sm:p-4 rounded-2xl border border-[#EADBCE] shadow-sm h-fit whitespace-nowrap scrollbar-none">
             <button
               id="account-tab-profile"
               onClick={() => navigate('/account')}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition ${
+              className={`shrink-0 lg:w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer ${
                 activeTab === 'profile'
                   ? 'bg-[#0B192C] text-white shadow-md'
                   : 'text-gray-700 hover:bg-[#FDFBF7] hover:text-[#0B192C]'
               }`}
             >
-              <span className="flex items-center gap-3">
+              <span className="flex items-center gap-2.5">
                 <User className={`w-4 h-4 ${activeTab === 'profile' ? 'text-[#C5A059]' : 'text-gray-400'}`} />
                 My Profile
               </span>
-              <ChevronRight className="w-4 h-4 opacity-50" />
+              <ChevronRight className="w-4 h-4 opacity-50 hidden lg:block" />
+            </button>
+
+            <button
+              id="account-tab-cart"
+              onClick={() => navigate('/account/cart')}
+              className={`shrink-0 lg:w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer ${
+                activeTab === 'cart'
+                  ? 'bg-[#0B192C] text-white shadow-md'
+                  : 'text-gray-700 hover:bg-[#FDFBF7] hover:text-[#0B192C]'
+              }`}
+            >
+              <span className="flex items-center gap-2.5">
+                <ShoppingBag className={`w-4 h-4 ${activeTab === 'cart' ? 'text-[#C5A059]' : 'text-gray-400'}`} />
+                My Cart
+              </span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                activeTab === 'cart' ? 'bg-[#C5A059] text-[#0B192C]' : 'bg-gray-100 text-gray-700'
+              }`}>
+                {totalCartQuantity}
+              </span>
             </button>
 
             <button
               id="account-tab-orders"
               onClick={() => navigate('/account/orders')}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition ${
+              className={`shrink-0 lg:w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer ${
                 activeTab === 'orders'
                   ? 'bg-[#0B192C] text-white shadow-md'
                   : 'text-gray-700 hover:bg-[#FDFBF7] hover:text-[#0B192C]'
               }`}
             >
-              <span className="flex items-center gap-3">
+              <span className="flex items-center gap-2.5">
                 <Package className={`w-4 h-4 ${activeTab === 'orders' ? 'text-[#C5A059]' : 'text-gray-400'}`} />
                 Order History
               </span>
-              <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700 font-bold">
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                activeTab === 'orders' ? 'bg-[#C5A059] text-[#0B192C]' : 'bg-gray-100 text-gray-700'
+              }`}>
                 {userOrders.length}
               </span>
             </button>
@@ -275,17 +315,19 @@ export const CustomerAccountView: React.FC = () => {
             <button
               id="account-tab-saved-books"
               onClick={() => navigate('/account/saved-books')}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition ${
+              className={`shrink-0 lg:w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer ${
                 activeTab === 'saved-books'
                   ? 'bg-[#0B192C] text-white shadow-md'
                   : 'text-gray-700 hover:bg-[#FDFBF7] hover:text-[#0B192C]'
               }`}
             >
-              <span className="flex items-center gap-3">
+              <span className="flex items-center gap-2.5">
                 <Bookmark className={`w-4 h-4 ${activeTab === 'saved-books' ? 'text-[#C5A059]' : 'text-gray-400'}`} />
                 Saved Books
               </span>
-              <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700 font-bold">
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                activeTab === 'saved-books' ? 'bg-[#C5A059] text-[#0B192C]' : 'bg-gray-100 text-gray-700'
+              }`}>
                 {savedBookIds.length}
               </span>
             </button>
@@ -293,17 +335,19 @@ export const CustomerAccountView: React.FC = () => {
             <button
               id="account-tab-saved-articles"
               onClick={() => navigate('/account/saved-articles')}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition ${
+              className={`shrink-0 lg:w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer ${
                 activeTab === 'saved-articles'
                   ? 'bg-[#0B192C] text-white shadow-md'
                   : 'text-gray-700 hover:bg-[#FDFBF7] hover:text-[#0B192C]'
               }`}
             >
-              <span className="flex items-center gap-3">
+              <span className="flex items-center gap-2.5">
                 <BookOpen className={`w-4 h-4 ${activeTab === 'saved-articles' ? 'text-[#C5A059]' : 'text-gray-400'}`} />
                 Saved Dispatches
               </span>
-              <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700 font-bold">
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                activeTab === 'saved-articles' ? 'bg-[#C5A059] text-[#0B192C]' : 'bg-gray-100 text-gray-700'
+              }`}>
                 {savedArticleIds.length}
               </span>
             </button>
@@ -311,17 +355,19 @@ export const CustomerAccountView: React.FC = () => {
             <button
               id="account-tab-reviews"
               onClick={() => navigate('/account/reviews')}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition ${
+              className={`shrink-0 lg:w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer ${
                 activeTab === 'reviews'
                   ? 'bg-[#0B192C] text-white shadow-md'
                   : 'text-gray-700 hover:bg-[#FDFBF7] hover:text-[#0B192C]'
               }`}
             >
-              <span className="flex items-center gap-3">
+              <span className="flex items-center gap-2.5">
                 <Star className={`w-4 h-4 ${activeTab === 'reviews' ? 'text-[#C5A059]' : 'text-gray-400'}`} />
                 My Reviews
               </span>
-              <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700 font-bold">
+              <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                activeTab === 'reviews' ? 'bg-[#C5A059] text-[#0B192C]' : 'bg-gray-100 text-gray-700'
+              }`}>
                 {userReviews.length}
               </span>
             </button>
@@ -329,17 +375,17 @@ export const CustomerAccountView: React.FC = () => {
             <button
               id="account-tab-security"
               onClick={() => navigate('/account/security')}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition ${
+              className={`shrink-0 lg:w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer ${
                 activeTab === 'security'
                   ? 'bg-[#0B192C] text-white shadow-md'
                   : 'text-gray-700 hover:bg-[#FDFBF7] hover:text-[#0B192C]'
               }`}
             >
-              <span className="flex items-center gap-3">
+              <span className="flex items-center gap-2.5">
                 <KeyRound className={`w-4 h-4 ${activeTab === 'security' ? 'text-[#C5A059]' : 'text-gray-400'}`} />
-                Security & Password
+                Security &amp; Password
               </span>
-              <ChevronRight className="w-4 h-4 opacity-50" />
+              <ChevronRight className="w-4 h-4 opacity-50 hidden lg:block" />
             </button>
           </div>
 
@@ -830,6 +876,132 @@ export const CustomerAccountView: React.FC = () => {
                     </button>
                   </div>
                 </form>
+              </div>
+            )}
+
+            {/* TAB: MY CART */}
+            {activeTab === 'cart' && (
+              <div id="account-section-cart" className="space-y-6">
+                <div className="border-b border-gray-200 pb-4 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-serif font-bold text-[#0B192C]">My Shopping Cart</h2>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Review and manage items reserved in your reader account cart.
+                    </p>
+                  </div>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#F4EBE1] text-[#0B192C]">
+                    {totalCartQuantity} {totalCartQuantity === 1 ? 'Item' : 'Items'}
+                  </span>
+                </div>
+
+                {cart.length === 0 ? (
+                  <div className="text-center py-12 bg-stone-50 rounded-2xl border border-stone-200 p-8 space-y-4">
+                    <ShoppingBag className="w-12 h-12 text-stone-300 mx-auto" />
+                    <h3 className="text-lg font-serif font-bold text-[#0B192C]">Your cart is empty</h3>
+                    <p className="text-xs text-stone-500 max-w-sm mx-auto">
+                      Explore our academic catalog, monograph collection, and jurisprudence dispatches to add books to your account cart.
+                    </p>
+                    <button
+                      onClick={() => navigate('/books')}
+                      className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#0B192C] text-[#C5A059] font-bold text-xs rounded-xl hover:bg-[#1E3E62] transition shadow"
+                    >
+                      Browse Book Catalog
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="divide-y divide-stone-200 border border-stone-200 rounded-2xl overflow-hidden bg-white">
+                      {cart.map((item) => (
+                        <div key={`${item.bookId}-${item.format}`} className="p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                          <div className="flex items-center gap-4">
+                            <img
+                              src={item.coverImage}
+                              alt={item.title}
+                              className="w-14 h-20 object-cover rounded-lg shadow border border-stone-200 flex-shrink-0"
+                            />
+                            <div>
+                              <h4 className="font-serif font-bold text-sm text-[#0B192C]">{item.title}</h4>
+                              <p className="text-xs text-stone-500 mt-0.5">By {item.authorName}</p>
+                              <span className="inline-block mt-1.5 px-2.5 py-0.5 bg-stone-100 text-stone-700 text-[11px] font-semibold rounded-full border border-stone-200">
+                                {item.format}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between w-full sm:w-auto sm:gap-8 pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-100">
+                            {/* Quantity Controls */}
+                            <div className="flex items-center border border-stone-300 rounded-lg bg-stone-50">
+                              <button
+                                onClick={() => updateCartQuantity(item.bookId, item.format, item.quantity - 1)}
+                                className="p-1.5 hover:bg-stone-200 text-stone-600 transition"
+                                title="Decrease quantity"
+                              >
+                                <Minus className="w-3.5 h-3.5" />
+                              </button>
+                              <span className="px-3 text-xs font-bold text-stone-800">{item.quantity}</span>
+                              <button
+                                onClick={() => updateCartQuantity(item.bookId, item.format, item.quantity + 1)}
+                                className="p-1.5 hover:bg-stone-200 text-stone-600 transition"
+                                title="Increase quantity"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+
+                            {/* Prices */}
+                            <div className="text-right">
+                              <p className="font-bold text-sm text-[#0B192C]">₹{item.price * item.quantity}</p>
+                              <p className="text-[11px] text-stone-400">₹{item.price} each</p>
+                            </div>
+
+                            {/* Remove button */}
+                            <button
+                              onClick={() => removeFromCart(item.bookId, item.format)}
+                              className="p-2 text-stone-400 hover:text-red-600 transition rounded-lg hover:bg-red-50"
+                              title="Remove item"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Order Summary Box */}
+                    <div className="bg-stone-50 p-6 rounded-2xl border border-stone-200 space-y-3">
+                      <div className="flex justify-between text-xs text-stone-600">
+                        <span>Subtotal</span>
+                        <span className="font-semibold text-stone-800">₹{cartSubtotal}</span>
+                      </div>
+                      {cartDiscount > 0 && (
+                        <div className="flex justify-between text-xs text-emerald-700">
+                          <span>Discount Applied</span>
+                          <span className="font-semibold">-₹{cartDiscount}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-xs text-stone-600">
+                        <span>Estimated Express Shipping</span>
+                        <span className="font-semibold text-stone-800">
+                          {cartShipping === 0 ? <span className="text-emerald-700 font-bold uppercase text-[10px]">Free</span> : `₹${cartShipping}`}
+                        </span>
+                      </div>
+                      <div className="border-t border-stone-200 pt-3 flex justify-between items-center">
+                        <span className="font-serif font-bold text-sm text-[#0B192C]">Total Payable</span>
+                        <span className="font-serif font-bold text-lg text-[#0B192C]">₹{cartTotal}</span>
+                      </div>
+
+                      <div className="pt-2 flex justify-end">
+                        <button
+                          onClick={() => navigate('/checkout')}
+                          className="w-full sm:w-auto px-8 py-3 bg-[#0B192C] text-[#C5A059] font-bold text-xs rounded-xl hover:bg-[#1E3E62] transition shadow-md flex items-center justify-center gap-2"
+                        >
+                          <span>Proceed to Checkout</span>
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

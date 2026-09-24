@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import { PaymentMethod } from '../types';
+import { RevealOnScroll } from '../components/RevealOnScroll';
 import {
   Truck,
   Lock,
@@ -66,26 +67,30 @@ export const CheckoutView: React.FC = () => {
     e.preventDefault();
     setIsProcessing(true);
 
-    // Simulate 1.2s realistic gateway processing
-    setTimeout(() => {
-      const order = placeOrder(shippingInfo, paymentMethod);
+    try {
+      const order = await placeOrder(shippingInfo, paymentMethod);
       setIsProcessing(false);
       navigate(`/order-success/${order.id}`);
-    }, 1200);
+    } catch (err: any) {
+      setIsProcessing(false);
+      alert(err.message || 'Failed to place order. Please try again.');
+    }
   };
 
   return (
     <div id="checkout-page" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header */}
-      <div className="border-b border-stone-200 pb-4">
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#C5A059] mb-1">
-          <Lock className="w-3.5 h-3.5" />
-          <span>256-Bit Encrypted Secure Checkout</span>
+      <RevealOnScroll direction="up">
+        <div className="border-b border-stone-200 pb-4">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#C5A059] mb-1">
+            <Lock className="w-3.5 h-3.5" />
+            <span>256-Bit Encrypted Secure Checkout</span>
+          </div>
+          <h1 className="font-serif text-3xl font-bold text-[#0B192C]">
+            Finalize Your Book Order
+          </h1>
         </div>
-        <h1 className="font-serif text-3xl font-bold text-[#0B192C]">
-          Finalize Your Book Order
-        </h1>
-      </div>
+      </RevealOnScroll>
 
       <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Shipping & Payment Modules */}

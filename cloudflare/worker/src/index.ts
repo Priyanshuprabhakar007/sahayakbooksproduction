@@ -65,6 +65,29 @@ async function checkAuth(env: Env, request: Request, ctx: ExecutionContext): Pro
   };
 }
 
+async function getCartForUser(db: D1Database, userId: string) {
+  const result = await db.prepare(`
+    SELECT ci.id, ci.book_id, ci.format, ci.quantity,
+           b.title, b.author_name, b.cover_image, b.price, b.original_price, b.in_stock
+    FROM cart_items ci
+    JOIN books b ON ci.book_id = b.id
+    WHERE ci.user_id = ?
+    ORDER BY ci.created_at ASC
+  `).bind(userId).all();
+
+  return (result.results || []).map((row: any) => ({
+    bookId: row.book_id,
+    title: row.title || 'Untitled',
+    authorName: row.author_name || 'Sahayak Editorial',
+    coverImage: row.cover_image || '',
+    format: row.format || 'Paperback',
+    price: Number(row.price || 0),
+    originalPrice: Number(row.original_price || row.price || 0),
+    quantity: Number(row.quantity || 1),
+    inStock: Boolean(row.in_stock === 1 || row.in_stock === true),
+  }));
+}
+
 // PBKDF2 password generation compatible with verifyPassword
 async function hashPassword(password: string): Promise<string> {
   const iterations = 100000;
@@ -219,7 +242,7 @@ export default {
           passwordHash,
           'CUSTOMER',
           'ACTIVE',
-          1,
+          0,
           '[]',
           '[]',
           '[]',
@@ -247,7 +270,7 @@ export default {
           phone: phone ? phone.trim() : '',
           role: 'CUSTOMER',
           status: 'ACTIVE',
-          emailVerified: true,
+          emailVerified: false,
           savedBookIds: [],
           savedArticleIds: [],
           wishlist: [],
@@ -493,6 +516,373 @@ export default {
           await env.DB.prepare('DELETE FROM sessions WHERE token_hash = ?').bind(hashedToken).run();
         }
         return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
+      }
+
+      if (path === '/api/auth/forgot-password' && request.method === 'POST') {
+        const { email } = await request.json() as { email: string };
+        const normEmail = (email || '').toString().trim().toLowerCase();
+        if (!normEmail) {
+          return new Response(JSON.stringify({ success: false, error: 'Email address is required.' }), { status: 400, headers: corsHeaders });
+        }
+        const user = await env.DB.prepare('SELECT id FROM users WHERE LOWER(email) = ?').bind(normEmail).first<{ id: string }>();
+        if (user) {
+          const resetToken = 'rst_' + crypto.randomUUID().replace(/-/g, '');
+          const resetExpires = new Date(Date.now() + 3600 * 1000).toISOString();
+          await env.DB.prepare('UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?').bind(resetToken, resetExpires, user.id).run();
+          return new Response(JSON.stringify({
+            success: true,
+            message: 'A password reset token has been generated.',
+            resetToken
+          }), { headers: corsHeaders });
+        }
+        return new Response(JSON.stringify({
+          success: true,
+          message: 'If an account exists with this email, a reset token has been issued.'
+        }), { headers: corsHeaders });
+      }
+
+      if (path === '/api/auth/reset-password' && request.method === 'POST') {
+        const body = await request.json() as any;
+        const resetToken = body.resetToken || body.token;
+        const newPassword = body.newPassword || body.password;
+        if (!resetToken || !newPassword) {
+          return new Response(JSON.stringify({ success: false, error: 'Reset token and new password are required.' }), { status: 400, headers: corsHeaders });
+        }
+        if (typeof newPassword !== 'string' || newPassword.length < 8) {
+          return new Response(JSON.stringify({ success: false, error: 'Password must be at least 8 characters long.' }), { status: 400, headers: corsHeaders });
+        }
+        const now = new Date().toISOString();
+        const user = await env.DB.prepare('SELECT id FROM users WHERE reset_token = ? AND reset_token_expires > ?').bind(resetToken, now).first<{ id: string }>();
+        if (!user) {
+          return new Response(JSON.stringify({ success: false, error: 'Invalid or expired password reset token.' }), { status: 400, headers: corsHeaders });
+        }
+        const newHash = await hashPassword(newPassword);
+        await env.DB.prepare('UPDATE users SET password_hash = ?, reset_token = NULL, reset_token_expires = NULL, updated_at = ? WHERE id = ?').bind(newHash, now, user.id).run();
+        return new Response(JSON.stringify({ success: true, message: 'Password reset successfully. You may now log in.' }), { headers: corsHeaders });
+      }
+
+      if (path === '/api/auth/verify-email' && request.method === 'POST') {
+        const auth = await checkAuth(env, request, ctx);
+        const body = (await request.json().catch(() => ({}))) as any;
+        const token = body.token || body.verifyToken;
+        let userIdToVerify = auth?.userId;
+        if (!userIdToVerify && token) {
+          const u = await env.DB.prepare('SELECT id FROM users WHERE verify_token = ?').bind(token).first<{ id: string }>();
+          if (u) userIdToVerify = u.id;
+        }
+        if (!userIdToVerify) {
+          return new Response(JSON.stringify({ success: false, error: 'Invalid verification request or token.' }), { status: 400, headers: corsHeaders });
+        }
+        const now = new Date().toISOString();
+        await env.DB.prepare('UPDATE users SET email_verified = 1, verify_token = NULL, updated_at = ? WHERE id = ?').bind(now, userIdToVerify).run();
+        return new Response(JSON.stringify({ success: true, message: 'Email verified successfully.' }), { headers: corsHeaders });
+      }
+
+      // Customer Cart Endpoints
+      if (path === '/api/cart' && request.method === 'GET') {
+        const auth = await checkAuth(env, request, ctx);
+        if (!auth) return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+        const items = await getCartForUser(env.DB, auth.userId);
+        return new Response(JSON.stringify({ success: true, items }), { headers: corsHeaders });
+      }
+
+      if (path === '/api/cart' && request.method === 'DELETE') {
+        const auth = await checkAuth(env, request, ctx);
+        if (!auth) return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+        await env.DB.prepare('DELETE FROM cart_items WHERE user_id = ?').bind(auth.userId).run();
+        return new Response(JSON.stringify({ success: true, items: [] }), { headers: corsHeaders });
+      }
+
+      if (path === '/api/cart/items' && request.method === 'POST') {
+        const auth = await checkAuth(env, request, ctx);
+        if (!auth) return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+        const body = await request.json() as any;
+        const { bookId, format, quantity } = body;
+        if (!bookId || !format || !quantity || quantity <= 0) {
+          return new Response(JSON.stringify({ success: false, error: 'Valid bookId, format, and positive quantity required.' }), { status: 400, headers: corsHeaders });
+        }
+        const now = new Date().toISOString();
+        const existing = await env.DB.prepare('SELECT id, quantity FROM cart_items WHERE user_id = ? AND book_id = ? AND format = ?').bind(auth.userId, bookId, format).first<{ id: string, quantity: number }>();
+        if (existing) {
+          await env.DB.prepare('UPDATE cart_items SET quantity = quantity + ?, updated_at = ? WHERE id = ?').bind(quantity, now, existing.id).run();
+        } else {
+          const cartItemId = 'cart_' + crypto.randomUUID().replace(/-/g, '');
+          await env.DB.prepare(`
+            INSERT INTO cart_items (id, user_id, book_id, format, quantity, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+          `).bind(cartItemId, auth.userId, bookId, format, quantity, now, now).run();
+        }
+        const items = await getCartForUser(env.DB, auth.userId);
+        return new Response(JSON.stringify({ success: true, items }), { headers: corsHeaders });
+      }
+
+      if (path === '/api/cart/items' && request.method === 'PUT') {
+        const auth = await checkAuth(env, request, ctx);
+        if (!auth) return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+        const body = await request.json() as any;
+        const { bookId, format, quantity } = body;
+        if (!bookId || !format) {
+          return new Response(JSON.stringify({ success: false, error: 'bookId and format are required.' }), { status: 400, headers: corsHeaders });
+        }
+        const now = new Date().toISOString();
+        if (!quantity || quantity <= 0) {
+          await env.DB.prepare('DELETE FROM cart_items WHERE user_id = ? AND book_id = ? AND format = ?').bind(auth.userId, bookId, format).run();
+        } else {
+          await env.DB.prepare('UPDATE cart_items SET quantity = ?, updated_at = ? WHERE user_id = ? AND book_id = ? AND format = ?').bind(quantity, now, auth.userId, bookId, format).run();
+        }
+        const items = await getCartForUser(env.DB, auth.userId);
+        return new Response(JSON.stringify({ success: true, items }), { headers: corsHeaders });
+      }
+
+      if (path === '/api/cart/items' && request.method === 'DELETE') {
+        const auth = await checkAuth(env, request, ctx);
+        if (!auth) return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+        const body = await request.json() as any;
+        const { bookId, format } = body;
+        if (!bookId || !format) {
+          return new Response(JSON.stringify({ success: false, error: 'bookId and format are required.' }), { status: 400, headers: corsHeaders });
+        }
+        await env.DB.prepare('DELETE FROM cart_items WHERE user_id = ? AND book_id = ? AND format = ?').bind(auth.userId, bookId, format).run();
+        const items = await getCartForUser(env.DB, auth.userId);
+        return new Response(JSON.stringify({ success: true, items }), { headers: corsHeaders });
+      }
+
+      // Customer Orders Endpoints
+      if (path === '/api/orders' && request.method === 'POST') {
+        const auth = await checkAuth(env, request, ctx);
+        if (!auth) return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+
+        const cartItems = await getCartForUser(env.DB, auth.userId);
+        if (!cartItems || cartItems.length === 0) {
+          return new Response(JSON.stringify({ success: false, error: 'Your cart is empty.' }), { status: 400, headers: corsHeaders });
+        }
+
+        const body = await request.json() as any;
+        const { customerInfo, paymentMethod, couponCode, orderNotes } = body;
+
+        let subtotal = 0;
+        for (const item of cartItems) {
+          subtotal += item.price * item.quantity;
+        }
+
+        let discount = 0;
+        if (couponCode) {
+          const cleanCode = couponCode.trim().toUpperCase();
+          const coupon = await env.DB.prepare('SELECT * FROM coupons WHERE UPPER(code) = ? AND is_active = 1').bind(cleanCode).first<any>();
+          if (coupon && subtotal >= (coupon.min_order || 0)) {
+            if (coupon.discount_type === 'percentage') {
+              discount = Math.round((subtotal * coupon.discount_value) / 100);
+              if (coupon.max_discount && discount > coupon.max_discount) {
+                discount = coupon.max_discount;
+              }
+            } else {
+              discount = Math.min(subtotal, coupon.discount_value);
+            }
+          }
+        }
+
+        const shipping = subtotal >= 499 ? 0 : 50;
+        const total = Math.max(0, subtotal - discount + shipping);
+
+        const orderId = 'ord_' + crypto.randomUUID().replace(/-/g, '');
+        const orderNumber = `SHK-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+        const now = new Date().toISOString();
+
+        const userRow = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(auth.userId).first<any>();
+        const custData = customerInfo || {
+          fullName: userRow?.name || 'Customer',
+          email: userRow?.email || auth.email,
+          phone: userRow?.phone || '',
+          address: userRow?.city || 'India',
+          city: userRow?.city || '',
+          state: '',
+          pinCode: '',
+          country: userRow?.country || 'India',
+        };
+
+        const defaultTrackingSteps = [
+          { status: 'Order Confirmed', label: 'Order Confirmed', description: 'Order verified & recorded', timestamp: 'Just now', completed: true, current: true },
+          { status: 'Processing', label: 'Processing Order', description: 'Inventory reserved', completed: false, current: false },
+          { status: 'Packed', label: 'Editorial Packaging', description: 'Quality inspection', completed: false, current: false },
+          { status: 'Shipped', label: 'In Transit', description: 'Dispatched via express partner', completed: false, current: false },
+          { status: 'Out for Delivery', label: 'Out for Delivery', description: 'Scheduled for doorstep delivery', completed: false, current: false },
+          { status: 'Delivered', label: 'Delivered', description: 'Handed over to recipient', completed: false, current: false }
+        ];
+
+        await env.DB.prepare(`
+          INSERT INTO orders (
+            id, order_number, user_id, customer_info, subtotal, shipping, discount, coupon_code, total,
+            payment_method, payment_status, order_status, tracking_steps, tracking_number, courier_partner,
+            estimated_delivery, order_notes, date, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          orderId,
+          orderNumber,
+          auth.userId,
+          JSON.stringify(custData),
+          subtotal,
+          shipping,
+          discount,
+          couponCode || '',
+          total,
+          paymentMethod || 'Cash on Delivery',
+          paymentMethod === 'Cash on Delivery' ? 'Pending' : 'Paid',
+          'Order Confirmed',
+          JSON.stringify(defaultTrackingSteps),
+          `EXP-${Math.floor(10000000 + Math.random() * 90000000)}`,
+          'BlueDart / Delhivery Express',
+          'Within 3-5 Business Days',
+          orderNotes || '',
+          now,
+          now,
+          now
+        ).run();
+
+        for (const item of cartItems) {
+          const itemId = 'oi_' + crypto.randomUUID().replace(/-/g, '');
+          const lineTotal = item.price * item.quantity;
+          await env.DB.prepare(`
+            INSERT INTO order_items (id, order_id, book_id, title, author_name, cover_image, format, quantity, unit_price, total_price, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(itemId, orderId, item.bookId, item.title, item.authorName, item.coverImage, item.format, item.quantity, item.price, lineTotal, now).run();
+
+          await env.DB.prepare(`
+            UPDATE books SET stock_count = MAX(0, stock_count - ?), purchases_count = purchases_count + ? WHERE id = ?
+          `).bind(item.quantity, item.quantity, item.bookId).run();
+        }
+
+        let userOrderIds: string[] = typeof userRow?.order_ids === 'string' ? safeJsonParse(userRow.order_ids, []) : [];
+        if (!userOrderIds.includes(orderId)) {
+          userOrderIds.push(orderId);
+          await env.DB.prepare('UPDATE users SET order_ids = ?, updated_at = ? WHERE id = ?').bind(JSON.stringify(userOrderIds), now, auth.userId).run();
+        }
+
+        await env.DB.prepare('DELETE FROM cart_items WHERE user_id = ?').bind(auth.userId).run();
+
+        const createdOrder = {
+          id: orderId,
+          orderNumber,
+          date: now,
+          customer: custData,
+          items: cartItems,
+          subtotal,
+          shipping,
+          discount,
+          couponCode,
+          total,
+          paymentMethod: paymentMethod || 'Cash on Delivery',
+          paymentStatus: paymentMethod === 'Cash on Delivery' ? 'Pending' : 'Paid',
+          orderStatus: 'Order Confirmed',
+          trackingSteps: defaultTrackingSteps,
+          trackingNumber: `EXP-${Math.floor(10000000 + Math.random() * 90000000)}`,
+          courierPartner: 'BlueDart / Delhivery Express',
+          estimatedDelivery: 'Within 3-5 Business Days',
+          orderNotes,
+        };
+
+        return new Response(JSON.stringify({ success: true, order: createdOrder }), { headers: corsHeaders });
+      }
+
+      if (path === '/api/orders/my' && request.method === 'GET') {
+        const auth = await checkAuth(env, request, ctx);
+        if (!auth) return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+
+        const orderRows = await env.DB.prepare('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC').bind(auth.userId).all<any>();
+        const ordersList: any[] = [];
+
+        for (const o of (orderRows.results || [])) {
+          const itemRows = await env.DB.prepare('SELECT * FROM order_items WHERE order_id = ?').bind(o.id).all<any>();
+          const items = (itemRows.results || []).map((item: any) => ({
+            bookId: item.book_id,
+            title: item.title,
+            authorName: item.author_name || 'Sahayak Editorial',
+            coverImage: item.cover_image || '',
+            format: item.format,
+            price: item.unit_price,
+            originalPrice: item.unit_price,
+            quantity: item.quantity,
+            inStock: true,
+          }));
+
+          ordersList.push({
+            id: o.id,
+            orderNumber: o.order_number,
+            date: o.date || o.created_at,
+            customer: safeJsonParse(o.customer_info, {}),
+            items,
+            subtotal: o.subtotal,
+            shipping: o.shipping,
+            discount: o.discount,
+            couponCode: o.coupon_code,
+            total: o.total,
+            paymentMethod: o.payment_method,
+            paymentStatus: o.payment_status,
+            orderStatus: o.order_status,
+            trackingSteps: safeJsonParse(o.tracking_steps, []),
+            trackingNumber: o.tracking_number,
+            courierPartner: o.courier_partner,
+            estimatedDelivery: o.estimated_delivery,
+            orderNotes: o.order_notes,
+          });
+        }
+
+        return new Response(JSON.stringify({ success: true, orders: ordersList }), { headers: corsHeaders });
+      }
+
+      if (path.startsWith('/api/orders/') && request.method === 'GET') {
+        const orderId = path.replace('/api/orders/', '');
+        const auth = await checkAuth(env, request, ctx);
+        if (!auth) return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+
+        const o = await env.DB.prepare('SELECT * FROM orders WHERE id = ? AND (user_id = ? OR ? = 1)').bind(orderId, auth.userId, isAuthorizedAdmin(auth) ? 1 : 0).first<any>();
+        if (!o) return new Response(JSON.stringify({ success: false, error: 'Order not found' }), { status: 404, headers: corsHeaders });
+
+        const itemRows = await env.DB.prepare('SELECT * FROM order_items WHERE order_id = ?').bind(o.id).all<any>();
+        const items = (itemRows.results || []).map((item: any) => ({
+          bookId: item.book_id,
+          title: item.title,
+          authorName: item.author_name || 'Sahayak Editorial',
+          coverImage: item.cover_image || '',
+          format: item.format,
+          price: item.unit_price,
+          originalPrice: item.unit_price,
+          quantity: item.quantity,
+          inStock: true,
+        }));
+
+        const order = {
+          id: o.id,
+          orderNumber: o.order_number,
+          date: o.date || o.created_at,
+          customer: safeJsonParse(o.customer_info, {}),
+          items,
+          subtotal: o.subtotal,
+          shipping: o.shipping,
+          discount: o.discount,
+          couponCode: o.coupon_code,
+          total: o.total,
+          paymentMethod: o.payment_method,
+          paymentStatus: o.payment_status,
+          orderStatus: o.order_status,
+          trackingSteps: safeJsonParse(o.tracking_steps, []),
+          trackingNumber: o.tracking_number,
+          courierPartner: o.courier_partner,
+          estimatedDelivery: o.estimated_delivery,
+          orderNotes: o.order_notes,
+        };
+
+        return new Response(JSON.stringify({ success: true, order }), { headers: corsHeaders });
+      }
+
+      // Google Merchant Center Stubs
+      if (path.startsWith('/api/admin/google-merchant/')) {
+        return new Response(JSON.stringify({
+          success: false,
+          configured: false,
+          message: 'Google Merchant Center integration is currently not configured.',
+          logs: [],
+          status: { isAuthConfigured: false, merchantAccountId: '' }
+        }), { status: 200, headers: corsHeaders });
       }
       if (path === '/api/health') {
         let d1Connected = false;
@@ -913,9 +1303,45 @@ export default {
         return new Response(JSON.stringify({ success: true, message: 'Media deleted successfully' }), { headers: corsHeaders });
       }
 
-      if (path === '/api/settings') {
+      if (path === '/api/settings' && request.method === 'GET') {
         const settings = await getSettings(env.DB);
         return new Response(JSON.stringify({ success: true, settings }), { headers: corsHeaders });
+      }
+
+      if (path === '/api/settings' && request.method === 'PUT') {
+        const auth = await checkAuth(env, request, ctx);
+        if (!isAuthorizedAdmin(auth)) {
+          return new Response(JSON.stringify({ success: false, error: 'Unauthorized: Staff admin privileges required' }), { status: 403, headers: corsHeaders });
+        }
+
+        let body: any = {};
+        try {
+          body = await request.json();
+        } catch {
+          return new Response(JSON.stringify({ success: false, error: 'Invalid JSON payload' }), { status: 400, headers: corsHeaders });
+        }
+
+        const existingSettings = (await getSettings(env.DB)) || {};
+        const updatedSettings = {
+          ...existingSettings,
+          ...body,
+        };
+
+        const now = new Date().toISOString();
+        const settingsStr = JSON.stringify(updatedSettings);
+
+        const existingRow = await env.DB.prepare("SELECT id FROM settings WHERE id = 'default'").first();
+        if (existingRow) {
+          await env.DB.prepare("UPDATE settings SET settings_json = ?, updated_at = ? WHERE id = 'default'").bind(settingsStr, now).run();
+        } else {
+          await env.DB.prepare("INSERT INTO settings (id, settings_json, updated_at) VALUES ('default', ?, ?)").bind(settingsStr, now).run();
+        }
+
+        return new Response(JSON.stringify({
+          success: true,
+          settings: updatedSettings,
+          message: 'Settings updated successfully.'
+        }), { headers: corsHeaders });
       }
 
       return new Response(JSON.stringify({ success: false, error: 'Not found' }), { status: 404, headers: corsHeaders });

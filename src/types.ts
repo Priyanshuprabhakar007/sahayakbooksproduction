@@ -533,8 +533,28 @@ export interface WebsiteSettings {
   whatsappNumber: string;
   contactEmail: string;
   contactPhone: string;
+  secondaryContactPhone?: string;
   officeAddress: string;
   businessHours: string;
+  contactEyebrow?: string;
+  contactHeading?: string;
+  contactSubheading?: string;
+  contactResponseTime?: string;
+
+  whatsappButtonText?: string;
+  whatsappPrefilledMessage?: string;
+
+  authorSessionsHeading?: string;
+  authorSessionsText?: string;
+
+  contactFormHeading?: string;
+  contactFormSubheading?: string;
+  contactFormSubmitText?: string;
+
+  contactSuccessHeading?: string;
+  contactSuccessMessage?: string;
+
+  contactSubjectOptions?: string[];
   defaultCurrency: string;
   timezone?: string;
 

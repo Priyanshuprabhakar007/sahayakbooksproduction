@@ -34,20 +34,40 @@ export const Navbar: React.FC = () => {
   } = useStore();
 
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const lastScrollY = useRef(0);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      const currentScrollY = window.scrollY;
+      setIsScrolled(currentScrollY > 20);
+
+      // Bidirectional scroll detection with 12px threshold
+      const diff = currentScrollY - lastScrollY.current;
+      if (Math.abs(diff) > 12) {
+        if (currentScrollY <= 60) {
+          setIsVisible(true);
+        } else if (diff > 0 && !isMobileMenuOpen && !isSearchOpen) {
+          // Scroll down -> hide
+          setIsVisible(false);
+          setIsUserDropdownOpen(false);
+        } else {
+          // Scroll up -> show
+          setIsVisible(true);
+        }
+        lastScrollY.current = currentScrollY;
+      }
     };
-    window.addEventListener('scroll', handleScroll);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isMobileMenuOpen, isSearchOpen]);
 
   useEffect(() => {
     if (isSearchOpen && searchInputRef.current) {
@@ -107,10 +127,11 @@ export const Navbar: React.FC = () => {
       {/* Main Sticky Header */}
       <header
         id="main-navbar"
-        className={`sticky top-0 z-40 w-full transition-all duration-300 ${
+        style={{ transform: isVisible ? 'translateY(0)' : 'translateY(-100%)' }}
+        className={`sticky top-0 z-40 w-full transition-transform duration-300 ease-in-out ${
           isScrolled
             ? 'bg-[#0B192C]/95 backdrop-blur-md text-[#FAF7F2] shadow-xl border-b border-[#C5A059]/20 py-3'
-            : 'bg-[#0B192C] text-[#FAF7F2] border-b border-[#C5A059]/15 py-4'
+            : 'bg-[#0B192C] text-[#FAF7F2] border-b border-[#C5A059]/15 py-3 sm:py-4'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
