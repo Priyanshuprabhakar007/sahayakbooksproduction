@@ -2651,20 +2651,6 @@ export const AdminDashboardView: React.FC = () => {
                   Immutable chronological audit trail recording changes to pricing, stock levels, orders, and content.
                 </p>
               </div>
-              <button
-                onClick={() =>
-                  setDeleteTarget({
-                    type: 'reset',
-                    id: 'factory-reset',
-                    title: 'Reset Store Catalog to Clean Factory Defaults',
-                    extraInfo: 'Restores the 4 official Sahayak Association books, demo orders, and reviews while clearing cached data.',
-                  })
-                }
-                className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-xl border border-rose-200 transition-colors flex items-center gap-1.5 cursor-pointer"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>Reset Store Data to Defaults</span>
-              </button>
             </div>
 
             <div className="overflow-x-auto">

@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
 
 export const AdminSetPasswordView = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialToken = urlParams.get('setupToken') || urlParams.get('token') || '';
+
   const [email, setEmail] = useState('');
+  const [setupToken, setSetupToken] = useState(initialToken);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -11,6 +15,10 @@ export const AdminSetPasswordView = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!setupToken.trim()) {
+      setError('Setup token is required.');
+      return;
+    }
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -24,7 +32,7 @@ export const AdminSetPasswordView = () => {
       const res = await fetch('/api/auth/set-initial-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, newPassword, confirmPassword }),
+        body: JSON.stringify({ email, setupToken: setupToken.trim(), newPassword, confirmPassword }),
       });
       const data = await res.json();
       if (data.success) {
@@ -48,6 +56,10 @@ export const AdminSetPasswordView = () => {
           <div>
             <label className="block font-bold text-stone-700 mb-1">Administrative Email</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full p-3 bg-stone-50 border border-stone-300 rounded-xl" />
+          </div>
+          <div>
+            <label className="block font-bold text-stone-700 mb-1">Setup Token</label>
+            <input type="text" value={setupToken} onChange={e => setSetupToken(e.target.value)} required placeholder="One-time setup token" className="w-full p-3 bg-stone-50 border border-stone-300 rounded-xl" />
           </div>
           <div>
             <label className="block font-bold text-stone-700 mb-1">New Password</label>

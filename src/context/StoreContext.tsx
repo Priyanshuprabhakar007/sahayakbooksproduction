@@ -33,9 +33,6 @@ import {
   INITIAL_COUPONS,
   INITIAL_SETTINGS,
   INITIAL_MEDIA,
-  INITIAL_LEADS,
-  INITIAL_USERS,
-  INITIAL_AUDIT_LOGS,
 } from '../data/initialData';
 
 interface StoreContextType {
@@ -95,7 +92,7 @@ interface StoreContextType {
   login: (email: string, role?: 'customer' | 'admin') => void;
   loginWithPhone: (phone: string) => void;
   logout: () => void;
-  adminLogin: (email: string, role?: UserRole) => { success: boolean; message?: string };
+  adminLogin: (email: string, password: string, rememberMe?: boolean) => Promise<{ success: boolean; message?: string; error?: string }>;
   adminLogout: () => void;
   ensureAdminAccess: () => void;
   updateUserProfile: (data: Partial<UserProfile>) => void;
@@ -116,52 +113,52 @@ interface StoreContextType {
   adminUpdateUserStatus: (userId: string, status: string) => Promise<{ success: boolean; message?: string; error?: string }>;
 
   // Order operations
-  placeOrder: (customer: Order['customer'], paymentMethod: PaymentMethod, orderNotes?: string) => Order;
-  updateOrderStatus: (orderId: string, status: OrderStatus, trackingNumber?: string, courier?: string) => void;
+  placeOrder: (customer: Order['customer'], paymentMethod: PaymentMethod, orderNotes?: string) => Promise<Order>;
+  updateOrderStatus: (orderId: string, status: OrderStatus, trackingNumber?: string, courier?: string) => Promise<void>;
   getOrderById: (orderIdOrNumber: string) => Order | undefined;
 
   // Review & Enquiry
   addReview: (review: Omit<Review, 'id' | 'date'>) => void;
-  submitEnquiry: (enquiry: Omit<ContactEnquiry, 'id' | 'date' | 'status'>) => void;
-  submitLead: (lead: Omit<ContactEnquiry, 'id' | 'date' | 'status'>) => void;
-  subscribeNewsletter: (email: string, source?: string) => { success: boolean; message: string };
+  submitEnquiry: (enquiry: Omit<ContactEnquiry, 'id' | 'date' | 'status'>) => Promise<void>;
+  submitLead: (lead: Omit<ContactEnquiry, 'id' | 'date' | 'status'>) => Promise<void>;
+  subscribeNewsletter: (email: string, source?: string) => Promise<{ success: boolean; message: string }>;
 
   // Admin Book CRUD operations
-  addBook: (book: Omit<Book, 'id'>) => Book;
-  updateBook: (book: Book) => void;
-  deleteBook: (bookId: string) => void;
-  duplicateBook: (bookId: string) => Book | undefined;
-  archiveBook: (bookId: string) => void;
-  toggleFeatureBook: (bookId: string) => void;
+  addBook: (book: Omit<Book, 'id'>) => Promise<Book>;
+  updateBook: (book: Book) => Promise<Book>;
+  deleteBook: (bookId: string) => Promise<void>;
+  duplicateBook: (bookId: string) => Promise<Book | undefined>;
+  archiveBook: (bookId: string) => Promise<void>;
+  toggleFeatureBook: (bookId: string) => Promise<void>;
   reorderBooks: (newBooks: Book[]) => void;
 
   // Admin Settings & Content
   updateSettings: (newSettings: Partial<WebsiteSettings>) => void;
-  updateAuthor: (author: Author) => void;
-  addAuthor: (author: Omit<Author, 'id'>) => void;
-  deleteAuthor: (authorId: string) => void;
+  updateAuthor: (author: Author) => Promise<Author>;
+  addAuthor: (author: Omit<Author, 'id'>) => Promise<Author>;
+  deleteAuthor: (authorId: string) => Promise<void>;
   updateCategory: (category: Category) => void;
   addBlog: (blog: Omit<BlogPost, 'id'>) => void;
   updateBlog: (blog: BlogPost) => void;
   deleteBlog: (blogId: string) => void;
-  addCoupon: (coupon: Omit<Coupon, 'id'>) => void;
+  addCoupon: (coupon: Omit<Coupon, 'id'>) => Promise<void>;
   updateCoupon: (coupon: Coupon) => void;
-  deleteCoupon: (couponId: string) => void;
-  toggleCoupon: (couponId: string) => void;
+  deleteCoupon: (couponId: string) => Promise<void>;
+  toggleCoupon: (couponId: string) => Promise<void>;
 
   // Reviews moderation
-  approveReview: (reviewId: string) => void;
-  rejectReview: (reviewId: string) => void;
+  approveReview: (reviewId: string) => Promise<void>;
+  rejectReview: (reviewId: string) => Promise<void>;
   featureReview: (reviewId: string) => void;
   updateReviewStatus: (reviewId: string, featuredOrApproved: boolean) => void;
   setReviewModeration: (reviewId: string, status: ReviewStatus) => void;
-  deleteReview: (reviewId: string) => void;
+  deleteReview: (reviewId: string) => Promise<void>;
 
   // Leads & Enquiries
-  updateEnquiryStatus: (id: string, status: ContactEnquiry['status']) => void;
-  updateLeadStatus: (id: string, status: ContactEnquiry['status']) => void;
+  updateEnquiryStatus: (id: string, status: ContactEnquiry['status']) => Promise<void>;
+  updateLeadStatus: (id: string, status: ContactEnquiry['status']) => Promise<void>;
   markEnquiryRead: (id: string) => void;
-  deleteEnquiry: (id: string) => void;
+  deleteEnquiry: (id: string) => Promise<void>;
 
   // Media Library
   addMediaItem: (item: Omit<MediaItem, 'id' | 'date'>) => MediaItem;
@@ -222,121 +219,14 @@ interface StoreContextType {
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
-const DEMO_ORDERS: Order[] = [
-  {
-    id: 'ord-1001',
-    orderNumber: 'SB-2026-8941',
-    date: '2026-02-27T10:30:00Z',
-    customer: {
-      fullName: 'Aarav Sharma',
-      email: 'aarav.sharma@example.com',
-      phone: '+91 98112 34567',
-      address: 'Flat 402, Royal Residency, Sector 62',
-      city: 'Noida',
-      state: 'Uttar Pradesh',
-      pinCode: '201309',
-      country: 'India',
-    },
-    items: [
-      {
-        bookId: 'book-1',
-        title: 'The Art of Strategic Governance',
-        authorName: 'Dr. Arvind Sahayak',
-        coverImage: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=800&q=80',
-        format: 'Hardcover',
-        price: 899,
-        originalPrice: 1299,
-        quantity: 1,
-        inStock: true,
-      },
-      {
-        bookId: 'book-4',
-        title: 'Investment Dictionary',
-        authorName: 'Sandeep Sahni',
-        coverImage: 'https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-02-175140-8f7a50.png',
-        format: 'Paperback',
-        price: 449,
-        originalPrice: 499,
-        quantity: 1,
-        inStock: true,
-      },
-    ],
-    subtotal: 1548,
-    shipping: 0,
-    discount: 154,
-    couponCode: 'SAHAYAK10',
-    total: 1394,
-    paymentMethod: 'UPI',
-    paymentStatus: 'Paid',
-    orderStatus: 'Shipped',
-    trackingNumber: 'BLUEDART-89410294',
-    courierPartner: 'BlueDart Express',
-    estimatedDelivery: 'March 3, 2026',
-    trackingSteps: [
-      { status: 'Order Confirmed', label: 'Order Confirmed', description: 'Your order was verified and payment received', timestamp: 'Feb 27, 2026, 10:30 AM', completed: true, current: false },
-      { status: 'Processing', label: 'Order Processing', description: 'Inventory reserved from Sahayak Central Depot', timestamp: 'Feb 27, 2026, 01:15 PM', completed: true, current: false },
-      { status: 'Packed', label: 'Custom Hardcover Boxing', description: 'Packed securely with waterproof luxury sleeves', timestamp: 'Feb 28, 2026, 11:00 AM', completed: true, current: false },
-      { status: 'Shipped', label: 'In Transit', description: 'Dispatched via BlueDart Air Express Hub Delhi', timestamp: 'Feb 28, 2026, 04:30 PM', completed: true, current: true },
-      { status: 'Out for Delivery', label: 'Out for Delivery', description: 'Courier agent will arrive at your premises', completed: false, current: false },
-      { status: 'Delivered', label: 'Delivered', description: 'Package handed over to recipient', completed: false, current: false },
-    ],
-  },
-  {
-    id: 'ord-1002',
-    orderNumber: 'SB-2026-9102',
-    date: '2026-02-28T14:20:00Z',
-    customer: {
-      fullName: 'Adv. Neha Kulkarni',
-      email: 'neha.law@example.com',
-      phone: '+91 99201 98765',
-      address: 'Office 301, High Court Chambers, Fort',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      pinCode: '400001',
-      country: 'India',
-    },
-    items: [
-      {
-        bookId: 'book-2',
-        title: 'Dear Son : Life Lessons from a Father',
-        authorName: 'Sandeep Sahni',
-        coverImage: 'https://pub-d7c01d3edc7e4dbab0acb59d64c988a8.r2.dev/sahayak/books/20260902-screenshot-2026-09-01-192900-2522ea.png',
-        format: 'Paperback',
-        price: 359,
-        originalPrice: 399,
-        quantity: 2,
-        inStock: true,
-      },
-    ],
-    subtotal: 2398,
-    shipping: 0,
-    discount: 239,
-    couponCode: 'SAHAYAK10',
-    total: 2159,
-    paymentMethod: 'Credit Card',
-    paymentStatus: 'Paid',
-    orderStatus: 'Processing',
-    trackingSteps: [
-      { status: 'Order Confirmed', label: 'Order Confirmed', description: 'Payment authorized', timestamp: 'Feb 28, 2026, 02:20 PM', completed: true, current: false },
-      { status: 'Processing', label: 'Binding & Verification', description: 'Hardcover gold foil embossing quality inspection', timestamp: 'Feb 28, 2026, 05:00 PM', completed: true, current: true },
-      { status: 'Packed', label: 'Packed', description: 'Awaiting dispatch pickup', completed: false, current: false },
-      { status: 'Shipped', label: 'Shipped', description: 'Pending transit handover', completed: false, current: false },
-      { status: 'Out for Delivery', label: 'Out for Delivery', description: 'Pending final leg', completed: false, current: false },
-      { status: 'Delivered', label: 'Delivered', description: 'Pending delivery', completed: false, current: false },
-    ],
-  },
-];
-
 export const normalizeAppPath = (raw?: string | null): string => {
   if (!raw) return '/';
   let cleaned = raw.trim();
 
-  // Strip all leading # characters (e.g. '#', '#/', '##')
   while (cleaned.startsWith('#')) {
     cleaned = cleaned.substring(1).trim();
   }
 
-  // Handle direct root, home, or empty variations
   if (
     !cleaned ||
     cleaned === '/' ||
@@ -373,136 +263,23 @@ export const normalizeAppPath = (raw?: string | null): string => {
   return queryString !== undefined && queryString.length > 0 ? `${normalized}?${queryString}` : normalized;
 };
 
-const DEFAULT_ADMIN_USER: UserProfile = {
-  id: 'usr-admin-master',
-  name: 'Sandeep Sahni',
-  email: 'admin@sahayakassociates.org',
-  phone: '+91 98765 43210',
-  role: 'SUPER_ADMIN',
-  status: 'active',
-  registrationDate: '2025-01-01',
-  lastLogin: 'Just now',
-  addresses: [],
-  wishlist: [],
-  orderIds: [],
-  savedEbooks: [],
-};
-
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // 1. Core Data State with Persistent LocalStorage
-  const [books, setBooks] = useState<Book[]>(() => {
-    const sanitizeBookImages = (bookList: Book[]): Book[] => {
-      const knownBackPatterns = ['190217', '192918', '174952', '175208'];
-      return bookList.map((b) => {
-        const matchInitial = INITIAL_BOOKS.find((init) => init.id === b.id);
-        if (!matchInitial) return b;
+  // 1. Core Public Data State
+  const [books, setBooks] = useState<Book[]>(INITIAL_BOOKS);
+  const [authors, setAuthors] = useState<Author[]>(INITIAL_AUTHORS);
+  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
+  const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
+  const [blogs, setBlogs] = useState<BlogPost[]>(INITIAL_BLOGS);
+  const [coupons, setCoupons] = useState<Coupon[]>(INITIAL_COUPONS);
+  const [settings, setSettings] = useState<WebsiteSettings>(INITIAL_SETTINGS);
 
-        const isBack = (url?: string) =>
-          url && (knownBackPatterns.some((pat) => url.includes(pat)) || url === matchInitial.backCoverImage);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [enquiries, setEnquiries] = useState<ContactEnquiry[]>([]);
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>(INITIAL_MEDIA);
 
-        const coverImage = isBack(b.coverImage) ? matchInitial.coverImage : (b.coverImage || matchInitial.coverImage);
-        const backCoverImage = b.backCoverImage || matchInitial.backCoverImage;
-        const mockup3DImage = isBack(b.mockup3DImage) ? matchInitial.mockup3DImage : (b.mockup3DImage || matchInitial.mockup3DImage);
-
-        const gallery = (b.galleryImages && b.galleryImages.length > 0 ? b.galleryImages : matchInitial.galleryImages || [])
-          .filter((img) => img && !isBack(img));
-
-        return {
-          ...b,
-          coverImage,
-          backCoverImage,
-          mockup3DImage,
-          galleryImages: gallery.length > 0 ? gallery : [coverImage],
-        };
-      });
-    };
-
-    const saved = localStorage.getItem('sahayak_books');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // If previous cache contains obsolete old items, ensure we initialize to the 4 official Sahayak Association books
-          if (parsed.length > 4 && parsed.some((b: Book) => b.id === 'book-5' || b.id === 'book-12')) {
-            return INITIAL_BOOKS;
-          }
-          return sanitizeBookImages(parsed);
-        }
-      } catch (e) {
-        return INITIAL_BOOKS;
-      }
-    }
-    return INITIAL_BOOKS;
-  });
-
-  const [authors, setAuthors] = useState<Author[]>(() => {
-    const saved = localStorage.getItem('sahayak_authors');
-    return saved ? JSON.parse(saved) : INITIAL_AUTHORS;
-  });
-
-  const [categories, setCategories] = useState<Category[]>(() => {
-    const saved = localStorage.getItem('sahayak_categories');
-    return saved ? JSON.parse(saved) : INITIAL_CATEGORIES;
-  });
-
-  const [reviews, setReviews] = useState<Review[]>(() => {
-    const saved = localStorage.getItem('sahayak_reviews');
-    return saved ? JSON.parse(saved) : INITIAL_REVIEWS;
-  });
-
-  const [blogs, setBlogs] = useState<BlogPost[]>(() => {
-    const saved = localStorage.getItem('sahayak_blogs');
-    return saved ? JSON.parse(saved) : INITIAL_BLOGS;
-  });
-
-  const [coupons, setCoupons] = useState<Coupon[]>(() => {
-    const saved = localStorage.getItem('sahayak_coupons');
-    return saved ? JSON.parse(saved) : INITIAL_COUPONS;
-  });
-
-  const [settings, setSettings] = useState<WebsiteSettings>(() => {
-    const saved = localStorage.getItem('sahayak_settings');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        return { ...INITIAL_SETTINGS, ...parsed };
-      } catch (e) {
-        return INITIAL_SETTINGS;
-      }
-    }
-    return INITIAL_SETTINGS;
-  });
-
-  const [orders, setOrders] = useState<Order[]>(() => {
-    const saved = localStorage.getItem('sahayak_orders');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [enquiries, setEnquiries] = useState<ContactEnquiry[]>(() => {
-    const saved = localStorage.getItem('sahayak_enquiries');
-    return saved ? JSON.parse(saved) : INITIAL_LEADS;
-  });
-
-  const [mediaItems, setMediaItems] = useState<MediaItem[]>(() => {
-    const saved = localStorage.getItem('sahayak_media');
-    return saved ? JSON.parse(saved) : INITIAL_MEDIA;
-  });
-
-  const [allUsers, setAllUsers] = useState<UserProfile[]>(() => {
-    const saved = localStorage.getItem('sahayak_all_users');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>(() => {
-    const saved = localStorage.getItem('sahayak_audit_logs');
-    return saved ? JSON.parse(saved) : INITIAL_AUDIT_LOGS;
-  });
-
-  const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>(() => {
-    const saved = localStorage.getItem('sahayak_subscribers');
-    return saved ? JSON.parse(saved) : [];
-  });
-
+  const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([]);
   const [analyticsEvents, setAnalyticsEvents] = useState<AnalyticsEvent[]>(() => {
     const saved = localStorage.getItem('sahayak_analytics');
     return saved ? JSON.parse(saved) : [];
@@ -513,12 +290,63 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return localStorage.getItem('sahayak_session_token');
   });
 
-  // Current Customer Session - Server token is authoritative source of truth
+  // Authoritative Customer and Admin Users
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [adminUser, setAdminUser] = useState<UserProfile | null>(null);
+
+  const hasAdminAccess = isAuthorizedAdminAccount(adminUser);
+  const isSuperAdmin = isAuthorizedAdminAccount(adminUser) && (adminUser?.role === 'SUPER_ADMIN' || adminUser?.role === 'ADMIN');
 
   // Google Merchant Center & Shopping State
   const [googleMerchantStatus, setGoogleMerchantStatus] = useState<any | null>(null);
   const [googleSyncLogs, setGoogleSyncLogs] = useState<GoogleMerchantSyncLog[]>([]);
+
+  // Admin Data Loader
+  const loadAdminData = useCallback(async (token: string) => {
+    const headers = { Authorization: `Bearer ${token}` };
+    try {
+      const [ordersRes, reviewsRes, enquiriesRes, subscribersRes, couponsRes, usersRes, logsRes] = await Promise.all([
+        fetch('/api/admin/orders', { headers }).catch(() => null),
+        fetch('/api/admin/reviews', { headers }).catch(() => null),
+        fetch('/api/admin/enquiries', { headers }).catch(() => null),
+        fetch('/api/admin/subscribers', { headers }).catch(() => null),
+        fetch('/api/coupons', { headers }).catch(() => null),
+        fetch('/api/admin/users', { headers }).catch(() => null),
+        fetch('/api/admin/audit-logs', { headers }).catch(() => null),
+      ]);
+
+      if (ordersRes?.ok) {
+        const d = await ordersRes.json();
+        if (d.success && Array.isArray(d.orders)) setOrders(d.orders);
+      }
+      if (reviewsRes?.ok) {
+        const d = await reviewsRes.json();
+        if (d.success && Array.isArray(d.reviews)) setReviews(d.reviews);
+      }
+      if (enquiriesRes?.ok) {
+        const d = await enquiriesRes.json();
+        if (d.success && Array.isArray(d.enquiries)) setEnquiries(d.enquiries);
+      }
+      if (subscribersRes?.ok) {
+        const d = await subscribersRes.json();
+        if (d.success && Array.isArray(d.subscribers)) setSubscribers(d.subscribers);
+      }
+      if (couponsRes?.ok) {
+        const d = await couponsRes.json();
+        if (d.success && Array.isArray(d.coupons)) setCoupons(d.coupons);
+      }
+      if (usersRes?.ok) {
+        const d = await usersRes.json();
+        if (d.success && Array.isArray(d.users)) setAllUsers(d.users);
+      }
+      if (logsRes?.ok) {
+        const d = await logsRes.json();
+        if (d.success && Array.isArray(d.auditLogs)) setAuditLogs(d.auditLogs);
+      }
+    } catch (err) {
+      console.warn('Failed to load admin data:', err);
+    }
+  }, []);
 
   // Helper to sync local guest cart into user's D1 cart and load user's cart & orders
   const syncAndFetchUserCartAndOrders = async (token: string) => {
@@ -590,13 +418,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         .then((data) => {
           if (data.success && data.user) {
             setCurrentUser(data.user);
-            localStorage.setItem('sahayak_current_user', JSON.stringify(data.user));
             if (isAuthorizedAdminAccount(data.user)) {
               setAdminUser(data.user);
-              localStorage.setItem('sahayak_admin_user', JSON.stringify(data.user));
+              loadAdminData(sessionToken);
             } else {
               setAdminUser(null);
-              localStorage.removeItem('sahayak_admin_user');
+              setAllUsers([]);
+              setAuditLogs([]);
             }
             syncAndFetchUserCartAndOrders(sessionToken);
           } else {
@@ -605,9 +433,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             setAdminUser(null);
             setCart([]);
             setOrders([]);
+            setAllUsers([]);
+            setAuditLogs([]);
             localStorage.removeItem('sahayak_session_token');
-            localStorage.removeItem('sahayak_current_user');
-            localStorage.removeItem('sahayak_admin_user');
           }
         })
         .catch(() => {
@@ -616,6 +444,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           setAdminUser(null);
           setCart([]);
           setOrders([]);
+          setAllUsers([]);
+          setAuditLogs([]);
           localStorage.removeItem('sahayak_session_token');
           localStorage.removeItem('sahayak_current_user');
           localStorage.removeItem('sahayak_admin_user');
@@ -623,16 +453,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } else {
       setCurrentUser(null);
       setAdminUser(null);
+      setAllUsers([]);
+      setAuditLogs([]);
       localStorage.removeItem('sahayak_current_user');
       localStorage.removeItem('sahayak_admin_user');
     }
-  }, [sessionToken]);
-
-  // Dedicated Admin / Staff Session - Must be verified by server session, no stale local storage boot
-  const [adminUser, setAdminUser] = useState<UserProfile | null>(null);
-
-  const hasAdminAccess = isAuthorizedAdminAccount(adminUser);
-  const isSuperAdmin = isAuthorizedAdminAccount(adminUser) && (adminUser?.role === 'SUPER_ADMIN' || adminUser?.role === 'ADMIN');
+  }, [sessionToken, loadAdminData]);
 
   // Wishlist & Cart
   const [wishlist, setWishlist] = useState<string[]>(() => {
@@ -661,17 +487,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
   const [authModalTab, setAuthModalTab] = useState<'login' | 'register'>('login');
 
-  // Helper to extract active route from browser environment (strict Storefront Home default on root)
   const getActiveLocationPath = (): string => {
     try {
-      // 1. If an explicit hash parameter is present (e.g. #/admin, #/books, #/admin/books)
       const rawHash = window.location.hash ? window.location.hash.trim() : '';
       const strippedHash = rawHash.replace(/^#+/, '').trim();
 
       if (strippedHash) {
         const [cleanHashPart] = strippedHash.split('?');
         const trimmed = cleanHashPart.trim();
-        // If hash is root, empty, or home: strictly return '/' (HomeView)
         if (
           !trimmed ||
           trimmed === '/' ||
@@ -682,16 +505,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ) {
           return '/';
         }
-        // If hash is an intentional route like #/admin, #/admin/books, or #/books
         return normalizeAppPath(strippedHash);
       }
 
-      // 2. If NO hash was provided (or hash is empty / # / #/):
       const rawPathname = (window.location.pathname || '').trim();
       const [cleanPathname] = rawPathname.split('?');
       const trimmedPath = cleanPathname.trim();
 
-      // Opening the site at root, empty, index.html, or home strictly defaults to HomeView ('/')
       if (
         !trimmedPath ||
         trimmedPath === '/' ||
@@ -702,17 +522,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return '/';
       }
 
-      // Any valid intentional route (including /admin, /admin/books, /books, /authors, /contact, /checkout, etc.)
       return normalizeAppPath(rawPathname);
     } catch {
-      // Safe fallback to Storefront Home
       return '/';
     }
   };
 
-  // Client-side Hash & Direct Routing with Resilient Normalization
   const [currentPath, setCurrentPath] = useState<string>(() => getActiveLocationPath());
-
   const isHydratedRef = useRef(false);
 
   // Helper to persist direct entity mutations to server
@@ -754,7 +570,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     []
   );
 
-    // Hydrate from Server Database on mount
+  // Hydrate Public Catalog Data from Server Database on mount
   useEffect(() => {
     let isMounted = true;
     async function loadServerDb() {
@@ -765,20 +581,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           '/api/categories',
           '/api/blogs',
           '/api/media',
-          '/api/settings'
+          '/api/settings',
+          '/api/reviews'
         ];
         const responses = await Promise.all(endpoints.map(ep => fetch(ep)));
         const data = await Promise.all(responses.map(r => r.json()));
         
         if (isMounted) {
-            // Merge responses into application state
-            if (data[0].success) setBooks(data[0].books);
-            if (data[1].success) setAuthors(data[1].authors);
-            if (data[2].success) setCategories(data[2].categories);
-            if (data[3].success) setBlogs(data[3].blogs);
-            if (data[4].success) setMediaItems(data[4].mediaItems);
-            if (data[5].success) setSettings(data[5].settings);
-            isHydratedRef.current = true;
+          if (data[0].success && Array.isArray(data[0].books)) setBooks(data[0].books);
+          if (data[1].success && Array.isArray(data[1].authors)) setAuthors(data[1].authors);
+          if (data[2].success && Array.isArray(data[2].categories)) setCategories(data[2].categories);
+          if (data[3].success && Array.isArray(data[3].blogs)) setBlogs(data[3].blogs);
+          if (data[4].success && Array.isArray(data[4].mediaItems)) setMediaItems(data[4].mediaItems);
+          if (data[5].success && data[5].settings) setSettings(prev => ({ ...prev, ...data[5].settings }));
+          if (data[6].success && Array.isArray(data[6].reviews)) setReviews(data[6].reviews);
+          isHydratedRef.current = true;
         }
       } catch (err) {
         console.warn('Could not connect to server database, using local cache:', err);
@@ -813,7 +630,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         window.history.pushState(null, '', normalized === '/' ? '/' : normalized);
       }
     } catch {
-      // Fallback for sandboxed iframes without pushState support
       try {
         window.location.hash = normalized === '/' ? '' : normalized;
       } catch {
@@ -837,7 +653,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
       }
     } else {
-      // If the URL already had a hash (hash-based navigation), keep hash updated
       if (window.location.hash) {
         try {
           window.location.hash = normalized;
@@ -852,107 +667,22 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     trackEvent('pageview', normalized);
   };
 
-  // Reset URL bar if on root home but lingering admin pathname exists
+  // Clean legacy server-owned keys from localStorage on boot
   useEffect(() => {
-    if (currentPath === '/') {
-      if (window.location.pathname === '/admin' || window.location.pathname.startsWith('/admin/')) {
-        try {
-          if (window.history && window.history.replaceState) {
-            window.history.replaceState(null, '', '/');
-          }
-        } catch {
-          // ignore
-        }
-      }
-    } else if (currentPath.startsWith('/admin') && window.location.hash) {
-      try {
-        if (window.history && window.history.replaceState) {
-          window.history.replaceState(null, '', currentPath);
-        }
-      } catch {
-        // ignore
-      }
-    }
-  }, [currentPath]);
-
-  // Sync state to local storage cache only when hydrated
-  useEffect(() => {
-    if (isHydratedRef.current) {
-      localStorage.setItem('sahayak_books', JSON.stringify(books));
-    }
-  }, [books]);
-
-  useEffect(() => {
-    if (isHydratedRef.current) {
-      localStorage.setItem('sahayak_authors', JSON.stringify(authors));
-    }
-  }, [authors]);
-
-  useEffect(() => {
-    if (isHydratedRef.current) {
-      localStorage.setItem('sahayak_categories', JSON.stringify(categories));
-    }
-  }, [categories]);
-
-  useEffect(() => {
-    if (isHydratedRef.current) {
-      localStorage.setItem('sahayak_reviews', JSON.stringify(reviews));
-    }
-  }, [reviews]);
-
-  useEffect(() => {
-    if (isHydratedRef.current) {
-      localStorage.setItem('sahayak_blogs', JSON.stringify(blogs));
-    }
-  }, [blogs]);
-
-  useEffect(() => {
-    if (isHydratedRef.current) {
-      localStorage.setItem('sahayak_coupons', JSON.stringify(coupons));
-    }
-  }, [coupons]);
-
-  useEffect(() => {
-    if (isHydratedRef.current) {
-      localStorage.setItem('sahayak_settings', JSON.stringify(settings));
-    }
-  }, [settings]);
-
-  useEffect(() => {
-    if (isHydratedRef.current) {
-      localStorage.setItem('sahayak_orders', JSON.stringify(orders));
-    }
-  }, [orders]);
-
-  useEffect(() => {
-    if (isHydratedRef.current) {
-      localStorage.setItem('sahayak_enquiries', JSON.stringify(enquiries));
-    }
-  }, [enquiries]);
-
-  useEffect(() => {
-    if (isHydratedRef.current) {
-      localStorage.setItem('sahayak_media', JSON.stringify(mediaItems));
-    }
-  }, [mediaItems]);
-
-  useEffect(() => {
-    if (isHydratedRef.current) {
-      localStorage.setItem('sahayak_all_users', JSON.stringify(allUsers));
-    }
-  }, [allUsers]);
-
-  useEffect(() => {
-    if (isHydratedRef.current) {
-      localStorage.setItem('sahayak_audit_logs', JSON.stringify(auditLogs));
-    }
-  }, [auditLogs]);
-
-  useEffect(() => {
-    if (isHydratedRef.current) {
-      localStorage.setItem('sahayak_subscribers', JSON.stringify(subscribers));
-    }
-  }, [subscribers]);
+    const legacyKeys = [
+      'sahayak_books',
+      'sahayak_authors',
+      'sahayak_categories',
+      'sahayak_reviews',
+      'sahayak_blogs',
+      'sahayak_coupons',
+      'sahayak_settings',
+      'sahayak_media',
+      'sahayak_current_user',
+      'sahayak_admin_user',
+    ];
+    legacyKeys.forEach((key) => localStorage.removeItem(key));
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('sahayak_analytics', JSON.stringify(analyticsEvents));
@@ -965,14 +695,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     localStorage.setItem('sahayak_cart', JSON.stringify(cart));
   }, [cart]);
-
-  useEffect(() => {
-    localStorage.setItem('sahayak_current_user', JSON.stringify(currentUser));
-  }, [currentUser]);
-
-  useEffect(() => {
-    localStorage.setItem('sahayak_admin_user', JSON.stringify(adminUser));
-  }, [adminUser]);
 
   // Audit log helper
   const addAuditLog = (action: string, resource: string, details: string) => {
@@ -1202,39 +924,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Authentication
   const login = (email: string, role: 'customer' | 'admin' = 'customer') => {
-    const userRole: UserRole = role === 'admin' ? 'ADMIN' : 'CUSTOMER';
-    const user: UserProfile = {
-      id: `usr-${Date.now()}`,
-      name: role === 'admin' ? 'Chief Administrator' : email.split('@')[0],
-      email,
-      phone: '+91 98765 43210',
-      role: userRole,
-      status: 'active',
-      registrationDate: new Date().toISOString().split('T')[0],
-      lastLogin: 'Just now',
-      addresses: [
-        {
-          id: 'addr-1',
-          isDefault: true,
-          name: email.split('@')[0],
-          phone: '+91 98765 43210',
-          address: 'Sahayak Knowledge Campus, Block B',
-          city: 'New Delhi',
-          state: 'Delhi',
-          pinCode: '110001',
-          type: 'Office',
-        },
-      ],
-      wishlist,
-      orderIds: ['ord-1001'],
-      savedEbooks: [],
-    };
-    setCurrentUser(user);
-    if (role === 'admin') {
-      setAdminUser(user);
-    }
-    setIsAuthModalOpen(false);
-    trackEvent('click', `User Logged In (${role}): ${email}`);
+    loginCustomer({ email, password: '' });
   };
 
   const loginWithPhone = (phone: string) => {
@@ -1258,24 +948,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const logout = () => {
-    if (sessionToken || localStorage.getItem('sahayak_session_token')) {
-      const token = sessionToken || localStorage.getItem('sahayak_session_token');
-      fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ sessionToken: token }),
-      }).catch((e) => console.warn('Logout notification error:', e));
-    }
-    setSessionToken(null);
-    setCurrentUser(null);
-    setAdminUser(null);
-    localStorage.removeItem('sahayak_session_token');
-    localStorage.removeItem('sahayak_current_user');
-    localStorage.removeItem('sahayak_admin_user');
-    trackEvent('click', 'Customer Logged Out');
+    logoutCustomer();
   };
 
   const adminLogin = async (
@@ -1299,14 +972,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           setSessionToken(data.sessionToken);
           localStorage.setItem('sahayak_session_token', data.sessionToken);
           setCurrentUser(data.user);
-          localStorage.setItem('sahayak_current_user', JSON.stringify(data.user));
           setAdminUser(data.user);
-          localStorage.setItem('sahayak_admin_user', JSON.stringify(data.user));
+          await loadAdminData(data.sessionToken);
           addAuditLog('Admin Login', 'Admin Session', `Successful login as ${data.user.role} (${data.user.email})`);
           return { success: true };
         } else {
           setAdminUser(null);
-          localStorage.removeItem('sahayak_admin_user');
           return { success: false, error: 'This account is not authorized for Admin access.' };
         }
       } else {
@@ -1329,6 +1000,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setSessionToken(null);
     setAdminUser(null);
     setCurrentUser(null);
+    setAllUsers([]);
+    setAuditLogs([]);
     localStorage.removeItem('sahayak_session_token');
     localStorage.removeItem('sahayak_current_user');
     localStorage.removeItem('sahayak_admin_user');
@@ -1343,7 +1016,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (currentUser) {
       const updated = { ...currentUser, ...data };
       setCurrentUser(updated);
-      localStorage.setItem('sahayak_current_user', JSON.stringify(updated));
     }
   };
 
@@ -1372,10 +1044,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (json.user) {
           const customerUser = { ...json.user, role: 'CUSTOMER' as const };
           setCurrentUser(customerUser);
-          localStorage.setItem('sahayak_current_user', JSON.stringify(customerUser));
         }
         setAdminUser(null);
-        localStorage.removeItem('sahayak_admin_user');
         return { success: true, message: json.message, verifyToken: json.verifyToken };
       } else {
         return { success: false, error: json.error || 'Registration failed.' };
@@ -1401,13 +1071,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
         if (json.user) {
           setCurrentUser(json.user);
-          localStorage.setItem('sahayak_current_user', JSON.stringify(json.user));
           if (isAuthorizedAdminAccount(json.user)) {
             setAdminUser(json.user);
-            localStorage.setItem('sahayak_admin_user', JSON.stringify(json.user));
+            await loadAdminData(json.sessionToken);
           } else {
             setAdminUser(null);
-            localStorage.removeItem('sahayak_admin_user');
           }
         }
         return { success: true, message: json.message };
@@ -1440,6 +1108,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setAdminUser(null);
     setCart([]);
     setOrders([]);
+    setAllUsers([]);
+    setAuditLogs([]);
     localStorage.removeItem('sahayak_session_token');
     localStorage.removeItem('sahayak_current_user');
     localStorage.removeItem('sahayak_admin_user');
@@ -1454,7 +1124,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         body: JSON.stringify({ email }),
       });
       const json = await res.json();
-      return { success: true, message: json.message || 'Password reset link sent if account exists.' };
+      return { success: true, message: json.message || 'If an account exists with this email, password reset instructions have been sent.' };
     } catch (err: any) {
       return { success: false, error: err.message || 'Server error.' };
     }
@@ -1488,7 +1158,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (json.success) {
         if (json.user) {
           setCurrentUser(json.user);
-          localStorage.setItem('sahayak_current_user', JSON.stringify(json.user));
         }
         return { success: true, message: json.message };
       }
@@ -1518,7 +1187,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const json = await res.json();
       if (json.success && json.user) {
         setCurrentUser(json.user);
-        localStorage.setItem('sahayak_current_user', JSON.stringify(json.user));
         return { success: true, message: json.message };
       }
       return { success: false, error: json.error || 'Update failed.' };
@@ -1566,7 +1234,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const nextSaved = json.savedBookIds || [];
         const updatedUser = { ...currentUser, savedBookIds: nextSaved };
         setCurrentUser(updatedUser);
-        localStorage.setItem('sahayak_current_user', JSON.stringify(updatedUser));
         return { success: true, isSaved: json.isSaved, message: json.message };
       }
       return { success: false, error: json.error || 'Save action failed.' };
@@ -1593,7 +1260,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const nextSaved = json.savedArticleIds || [];
         const updatedUser = { ...currentUser, savedArticleIds: nextSaved };
         setCurrentUser(updatedUser);
-        localStorage.setItem('sahayak_current_user', JSON.stringify(updatedUser));
         return { success: true, isSaved: json.isSaved, message: json.message };
       }
       return { success: false, error: json.error || 'Save action failed.' };
@@ -1683,33 +1349,43 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return newOrder;
   };
 
-  const updateOrderStatus = (
+  const updateOrderStatus = async (
     orderId: string,
     status: OrderStatus,
     trackingNumber?: string,
     courier?: string
   ) => {
-    setOrders((prev) =>
-      prev.map((ord) => {
-        if (ord.id === orderId || ord.orderNumber === orderId) {
-          const updatedSteps = ord.trackingSteps.map((step) => {
-            if (step.status === status) {
-              return { ...step, completed: true, current: true, timestamp: 'Updated just now' };
-            }
-            return step;
-          });
-          return {
-            ...ord,
-            orderStatus: status,
-            trackingNumber: trackingNumber || ord.trackingNumber,
-            courierPartner: courier || ord.courierPartner,
-            trackingSteps: updatedSteps,
-          };
-        }
-        return ord;
-      })
-    );
-    addAuditLog('Order Status Updated', orderId, `Status changed to: ${status}`);
+    try {
+      await persistToServer(`/api/admin/orders/${orderId}`, 'PUT', {
+        orderStatus: status,
+        trackingNumber,
+        courierPartner: courier,
+      });
+      setOrders((prev) =>
+        prev.map((ord) => {
+          if (ord.id === orderId || ord.orderNumber === orderId) {
+            const updatedSteps = ord.trackingSteps.map((step) => {
+              if (step.status === status) {
+                return { ...step, completed: true, current: true, timestamp: 'Updated just now' };
+              }
+              return step;
+            });
+            return {
+              ...ord,
+              orderStatus: status,
+              trackingNumber: trackingNumber || ord.trackingNumber,
+              courierPartner: courier || ord.courierPartner,
+              trackingSteps: updatedSteps,
+            };
+          }
+          return ord;
+        })
+      );
+      addAuditLog('Order Status Updated', orderId, `Status changed to: ${status}`);
+    } catch (err) {
+      console.error('Failed to update order status:', err);
+      throw err;
+    }
   };
 
   const getOrderById = (orderIdOrNumber: string) => {
@@ -1717,7 +1393,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Review & Enquiry
-  const addReview = (reviewData: Omit<Review, 'id' | 'date'>) => {
+  const addReview = async (reviewData: Omit<Review, 'id' | 'date'>) => {
     const sentiment: 'Positive' | 'Neutral' | 'Negative' =
       reviewData.rating >= 4 ? 'Positive' : reviewData.rating === 3 ? 'Neutral' : 'Negative';
 
@@ -1725,52 +1401,54 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       ...reviewData,
       id: `rev-${Date.now()}`,
       date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-      approved: false, // requires admin moderation
+      approved: false,
       status: 'Pending',
       sentiment,
       verifiedPurchase: true,
     };
-    setReviews((prev) => [newRev, ...prev]);
-    addAuditLog('New Review Submitted', reviewData.bookTitle, `Rating: ${reviewData.rating}★ by ${reviewData.userName} (Status: Pending)`);
-    trackEvent('review_submitted', `Review for: ${reviewData.bookTitle}`);
-  };
-
-  const approveReview = (reviewId: string) => {
-    setReviews((prev) =>
-      prev.map((r) => {
-        if (r.id === reviewId) {
-          return { ...r, approved: true, status: 'Approved' };
-        }
-        return r;
-      })
-    );
-
-    // Recalculate book average rating based on all approved reviews
-    const targetRev = reviews.find((r) => r.id === reviewId);
-    if (targetRev) {
-      const bookApprovedReviews = reviews
-        .filter((r) => r.bookId === targetRev.bookId && (r.id === reviewId || r.approved));
-      const totalRatings = bookApprovedReviews.reduce((acc, cur) => acc + cur.rating, 0);
-      const avg = (totalRatings / (bookApprovedReviews.length || 1)).toFixed(1);
-
-      setBooks((prevBooks) =>
-        prevBooks.map((b) =>
-          b.id === targetRev.bookId
-            ? { ...b, rating: parseFloat(avg), reviewCount: bookApprovedReviews.length }
-            : b
-        )
-      );
-      addAuditLog('Review Approved', targetRev.bookTitle, `Approved review by ${targetRev.userName}`);
+    try {
+      await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reviewData),
+      });
+      setReviews((prev) => [newRev, ...prev]);
+      addAuditLog('New Review Submitted', reviewData.bookTitle, `Rating: ${reviewData.rating}★ by ${reviewData.userName} (Status: Pending)`);
+      trackEvent('review_submitted', `Review for: ${reviewData.bookTitle}`);
+    } catch (e) {
+      console.warn('Failed to post review to server:', e);
     }
   };
 
-  const rejectReview = (reviewId: string) => {
-    setReviews((prev) =>
-      prev.map((r) => (r.id === reviewId ? { ...r, approved: false, status: 'Rejected' } : r))
-    );
-    const targetRev = reviews.find((r) => r.id === reviewId);
-    if (targetRev) {
-      addAuditLog('Review Rejected', targetRev.bookTitle, `Rejected review by ${targetRev.userName}`);
+  const approveReview = async (reviewId: string) => {
+    try {
+      await persistToServer(`/api/reviews/${reviewId}`, 'PUT', { status: 'Approved', approved: true });
+      setReviews((prev) =>
+        prev.map((r) => (r.id === reviewId ? { ...r, approved: true, status: 'Approved' } : r))
+      );
+      const targetRev = reviews.find((r) => r.id === reviewId);
+      if (targetRev) {
+        addAuditLog('Review Approved', targetRev.bookTitle, `Approved review by ${targetRev.userName}`);
+      }
+    } catch (err) {
+      console.error('Failed to approve review:', err);
+      throw err;
+    }
+  };
+
+  const rejectReview = async (reviewId: string) => {
+    try {
+      await persistToServer(`/api/reviews/${reviewId}`, 'PUT', { status: 'Rejected', approved: false });
+      setReviews((prev) =>
+        prev.map((r) => (r.id === reviewId ? { ...r, approved: false, status: 'Rejected' } : r))
+      );
+      const targetRev = reviews.find((r) => r.id === reviewId);
+      if (targetRev) {
+        addAuditLog('Review Rejected', targetRev.bookTitle, `Rejected review by ${targetRev.userName}`);
+      }
+    } catch (err) {
+      console.error('Failed to reject review:', err);
+      throw err;
     }
   };
 
@@ -1780,6 +1458,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } else if (status === 'Rejected') {
       rejectReview(reviewId);
     } else {
+      persistToServer(`/api/reviews/${reviewId}`, 'PUT', { status: 'Pending', approved: false }).catch(() => {});
       setReviews((prev) =>
         prev.map((r) => (r.id === reviewId ? { ...r, approved: false, status: 'Pending' } : r))
       );
@@ -1787,79 +1466,123 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const featureReview = (reviewId: string) => {
-    setReviews((prev) => prev.map((r) => (r.id === reviewId ? { ...r, featured: !r.featured } : r)));
+    const target = reviews.find(r => r.id === reviewId);
+    if (!target) return;
+    const nextFeatured = !target.featured;
+    persistToServer(`/api/reviews/${reviewId}`, 'PUT', { featured: nextFeatured }).catch(() => {});
+    setReviews((prev) => prev.map((r) => (r.id === reviewId ? { ...r, featured: nextFeatured } : r)));
   };
 
   const updateReviewStatus = (reviewId: string, featuredOrApproved: boolean) => {
+    persistToServer(`/api/reviews/${reviewId}`, 'PUT', { featured: featuredOrApproved, approved: true, status: 'Approved' }).catch(() => {});
     setReviews((prev) =>
       prev.map((r) => (r.id === reviewId ? { ...r, featured: featuredOrApproved, approved: true, status: 'Approved' } : r))
     );
   };
 
-  const deleteReview = (reviewId: string) => {
-    const target = reviews.find((r) => r.id === reviewId);
-    setReviews((prev) => prev.filter((r) => r.id !== reviewId));
-    if (target) {
-      addAuditLog('Review Deleted', target.bookTitle, `Removed reader review by ${target.userName}`);
+  const deleteReview = async (reviewId: string) => {
+    try {
+      await persistToServer(`/api/reviews/${reviewId}`, 'DELETE', {});
+      const target = reviews.find((r) => r.id === reviewId);
+      setReviews((prev) => prev.filter((r) => r.id !== reviewId));
+      if (target) {
+        addAuditLog('Review Deleted', target.bookTitle, `Removed reader review by ${target.userName}`);
+      }
+    } catch (err) {
+      console.error('Failed to delete review:', err);
+      throw err;
     }
   };
 
   // Leads & Contact Enquiries
-  const submitEnquiry = (enquiryData: Omit<ContactEnquiry, 'id' | 'date' | 'status'>) => {
-    const newEnq: ContactEnquiry = {
-      ...enquiryData,
-      id: `enq-${Date.now()}`,
-      date: new Date().toISOString().split('T')[0],
-      status: 'New',
-    };
-    setEnquiries((prev) => [newEnq, ...prev]);
-    addAuditLog('New Enquiry Captured', enquiryData.subject, `From: ${enquiryData.name} (${enquiryData.email})`);
-    trackEvent('lead_submitted', enquiryData.subject);
+  const submitEnquiry = async (enquiryData: Omit<ContactEnquiry, 'id' | 'date' | 'status'>) => {
+    try {
+      const res = await fetch('/api/enquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(enquiryData),
+      });
+      const data = await res.json();
+      if (data.success) {
+        const newEnq: ContactEnquiry = {
+          ...enquiryData,
+          id: `enq-${Date.now()}`,
+          date: new Date().toISOString().split('T')[0],
+          status: 'New',
+        };
+        setEnquiries((prev) => [newEnq, ...prev]);
+        trackEvent('lead_submitted', enquiryData.subject);
+      }
+    } catch (err) {
+      console.error('Failed to submit enquiry:', err);
+    }
   };
 
-  const submitLead = (leadData: Omit<ContactEnquiry, 'id' | 'date' | 'status'>) => {
-    submitEnquiry(leadData);
-  };
+  const submitLead = submitEnquiry;
 
-  const updateEnquiryStatus = (id: string, status: ContactEnquiry['status']) => {
-    setEnquiries((prev) => prev.map((e) => (e.id === id ? { ...e, status } : e)));
-    addAuditLog('Lead Status Updated', id, `Status changed to: ${status}`);
+  const updateEnquiryStatus = async (id: string, status: ContactEnquiry['status']) => {
+    try {
+      await persistToServer(`/api/admin/enquiries/${id}`, 'PUT', { status });
+      setEnquiries((prev) => prev.map((e) => (e.id === id ? { ...e, status } : e)));
+      addAuditLog('Lead Status Updated', id, `Status changed to: ${status}`);
+    } catch (err) {
+      console.error('Failed to update enquiry status:', err);
+      throw err;
+    }
   };
 
   const updateLeadStatus = updateEnquiryStatus;
 
   const markEnquiryRead = (id: string) => {
-    setEnquiries((prev) =>
-      prev.map((e) => (e.id === id ? { ...e, status: 'In Review' as const } : e))
-    );
+    updateEnquiryStatus(id, 'In Review');
   };
 
-  const deleteEnquiry = (id: string) => {
-    setEnquiries((prev) => prev.filter((e) => e.id !== id));
-    addAuditLog('Lead Deleted', id, 'Removed from lead pipeline');
+  const deleteEnquiry = async (id: string) => {
+    try {
+      await persistToServer(`/api/admin/enquiries/${id}`, 'DELETE', {});
+      setEnquiries((prev) => prev.filter((e) => e.id !== id));
+      addAuditLog('Lead Deleted', id, 'Removed from lead pipeline');
+    } catch (err) {
+      console.error('Failed to delete enquiry:', err);
+      throw err;
+    }
   };
 
-  const subscribeNewsletter = (email: string, source: string = 'Website') => {
+  const subscribeNewsletter = async (email: string, source: string = 'Website') => {
     const cleanEmail = email.trim().toLowerCase();
     if (!cleanEmail || !cleanEmail.includes('@')) {
       return { success: false, message: 'Please enter a valid email address.' };
     }
-    if (subscribers.some((s) => s.email.toLowerCase() === cleanEmail)) {
-      return { success: true, message: 'You are already subscribed to Sahayak Insights!' };
+    try {
+      const res = await fetch('/api/subscribers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, source }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        const newSub: NewsletterSubscriber = {
+          id: `sub-${Date.now()}`,
+          email: cleanEmail,
+          date: new Date().toISOString().split('T')[0],
+          source,
+        };
+        setSubscribers((prev) => {
+          if (prev.some((s) => s.email.toLowerCase() === cleanEmail)) return prev;
+          return [newSub, ...prev];
+        });
+        trackEvent('click', `Newsletter Subscribed: ${cleanEmail}`);
+        return { success: true, message: data.message || 'Subscribed successfully!' };
+      } else {
+        return { success: false, message: data.error || 'Subscription failed.' };
+      }
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Server error.' };
     }
-    const newSub: NewsletterSubscriber = {
-      id: `sub-${Date.now()}`,
-      email: cleanEmail,
-      date: new Date().toISOString().split('T')[0],
-      source,
-    };
-    setSubscribers((prev) => [newSub, ...prev]);
-    trackEvent('click', `Newsletter Subscribed: ${cleanEmail}`);
-    return { success: true, message: 'Thank you for subscribing to Sahayak Books intellectual dispatches!' };
   };
 
   // Admin Book CRUD
-  const addBook = (bookData: Omit<Book, 'id'>): Book => {
+  const addBook = async (bookData: Omit<Book, 'id'>): Promise<Book> => {
     const slug =
       bookData.slug ||
       bookData.title
@@ -1867,7 +1590,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)+/g, '');
 
-    const newBook: Book = {
+    const tempBook: Book = {
       ...bookData,
       id: `book-${Date.now()}`,
       slug,
@@ -1878,13 +1601,19 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       updatedAt: new Date().toISOString(),
     };
 
-    setBooks((prev) => [newBook, ...prev]);
-    addAuditLog('Book Created', newBook.title, `Added new publication with MRP: ₹${newBook.originalPrice}, Selling: ₹${newBook.price}`);
-    persistToServer('/api/books', 'POST', newBook);
-    return newBook;
+    try {
+      const resData = await persistToServer('/api/books', 'POST', tempBook);
+      const savedBook = resData?.book || tempBook;
+      setBooks((prev) => [savedBook, ...prev]);
+      addAuditLog('Book Created', savedBook.title, `Added new publication: ₹${savedBook.price}`);
+      return savedBook;
+    } catch (err) {
+      console.error('Failed to create book on server:', err);
+      throw err;
+    }
   };
 
-  const updateBook = async (updatedBook: Book) => {
+  const updateBook = async (updatedBook: Book): Promise<Book> => {
     const calculatedDiscount =
       updatedBook.originalPrice > updatedBook.price && updatedBook.originalPrice > 0
         ? Math.round(((updatedBook.originalPrice - updatedBook.price) / updatedBook.originalPrice) * 100)
@@ -1911,16 +1640,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const deleteBook = (bookId: string) => {
+  const deleteBook = async (bookId: string) => {
     const target = books.find((b) => b.id === bookId);
-    setBooks((prev) => prev.filter((b) => b.id !== bookId));
-    if (target) {
-      addAuditLog('Book Deleted', target.title, `Permanently removed book ID: ${bookId}`);
+    try {
+      await persistToServer(`/api/books/${bookId}`, 'DELETE', {});
+      setBooks((prev) => prev.filter((b) => b.id !== bookId));
+      if (target) {
+        addAuditLog('Book Deleted', target.title, `Permanently removed book ID: ${bookId}`);
+      }
+    } catch (err) {
+      console.error('Failed to delete book:', err);
+      throw err;
     }
-    persistToServer(`/api/books/${bookId}`, 'DELETE', {});
   };
 
-  const duplicateBook = (bookId: string): Book | undefined => {
+  const duplicateBook = async (bookId: string): Promise<Book | undefined> => {
     const original = books.find((b) => b.id === bookId);
     if (!original) return undefined;
 
@@ -1934,31 +1668,47 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       updatedAt: new Date().toISOString(),
     };
 
-    setBooks((prev) => [copy, ...prev]);
-    addAuditLog('Book Duplicated', copy.title, `Created draft clone from: ${original.title}`);
-    persistToServer('/api/books', 'POST', copy);
-    return copy;
-  };
-
-  const archiveBook = (bookId: string) => {
-    setBooks((prev) =>
-      prev.map((b) => (b.id === bookId ? { ...b, status: 'archived', updatedAt: new Date().toISOString() } : b))
-    );
-    const target = books.find((b) => b.id === bookId);
-    if (target) {
-      addAuditLog('Book Archived', target.title, 'Status changed to archived');
+    try {
+      const resData = await persistToServer('/api/books', 'POST', copy);
+      const savedBook = resData?.book || copy;
+      setBooks((prev) => [savedBook, ...prev]);
+      addAuditLog('Book Duplicated', savedBook.title, `Created draft clone from: ${original.title}`);
+      return savedBook;
+    } catch (err) {
+      console.error('Failed to duplicate book:', err);
+      throw err;
     }
-    persistToServer(`/api/books/${bookId}`, 'PUT', { status: 'archived' });
   };
 
-  const toggleFeatureBook = (bookId: string) => {
+  const archiveBook = async (bookId: string) => {
+    try {
+      await persistToServer(`/api/books/${bookId}`, 'PUT', { status: 'archived' });
+      setBooks((prev) =>
+        prev.map((b) => (b.id === bookId ? { ...b, status: 'archived', updatedAt: new Date().toISOString() } : b))
+      );
+      const target = books.find((b) => b.id === bookId);
+      if (target) {
+        addAuditLog('Book Archived', target.title, 'Status changed to archived');
+      }
+    } catch (err) {
+      console.error('Failed to archive book:', err);
+      throw err;
+    }
+  };
+
+  const toggleFeatureBook = async (bookId: string) => {
     const target = books.find((b) => b.id === bookId);
     if (target) {
       const nextFeatured = !target.isFeatured;
-      setBooks((prev) =>
-        prev.map((b) => (b.id === bookId ? { ...b, isFeatured: nextFeatured } : b))
-      );
-      persistToServer(`/api/books/${bookId}`, 'PUT', { isFeatured: nextFeatured });
+      try {
+        await persistToServer(`/api/books/${bookId}`, 'PUT', { isFeatured: nextFeatured });
+        setBooks((prev) =>
+          prev.map((b) => (b.id === bookId ? { ...b, isFeatured: nextFeatured } : b))
+        );
+      } catch (err) {
+        console.error('Failed to toggle feature book:', err);
+        throw err;
+      }
     }
   };
 
@@ -1968,21 +1718,24 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Settings & Content
-  const updateSettings = (newSettings: Partial<WebsiteSettings>) => {
-    setSettings((prev) => {
-      const updated = { ...prev, ...newSettings };
-      addAuditLog('Website Settings Updated', 'Global Settings', 'Updated branding, contact info, or features');
-      return updated;
-    });
-    persistToServer('/api/settings', 'PUT', newSettings);
+  const updateSettings = async (newSettings: Partial<WebsiteSettings>) => {
+    try {
+      const resData = await persistToServer('/api/settings', 'PUT', newSettings);
+      const updated = resData?.settings || newSettings;
+      setSettings((prev) => ({ ...prev, ...updated }));
+      addAuditLog('Website Settings Updated', 'Global Settings', 'Updated settings in database');
+    } catch (err) {
+      console.error('Failed to update settings:', err);
+      throw err;
+    }
   };
 
-  const updateAuthor = async (updatedAuthor: Author) => {
+  const updateAuthor = async (updatedAuthor: Author): Promise<Author> => {
     try {
       const data = await persistToServer(`/api/authors/${updatedAuthor.id}`, 'PUT', updatedAuthor);
       const savedAuthor = data?.author || updatedAuthor;
       setAuthors((prev) => prev.map((a) => (a.id === updatedAuthor.id ? savedAuthor : a)));
-      addAuditLog('Author Profile Updated', savedAuthor.name, 'Updated bio, expertise, or photo');
+      addAuditLog('Author Profile Updated', savedAuthor.name, 'Updated author profile');
       return savedAuthor;
     } catch (err: any) {
       console.error('Failed to update author:', err);
@@ -1990,17 +1743,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const addAuthor = async (authorData: Omit<Author, 'id'>) => {
+  const addAuthor = async (authorData: Omit<Author, 'id'>): Promise<Author> => {
     const tempId = `author-${Date.now()}`;
-    const payload = {
-      ...authorData,
-      id: tempId,
-    };
+    const payload = { ...authorData, id: tempId };
     try {
       const data = await persistToServer('/api/authors', 'POST', payload);
       const savedAuthor = data?.author || payload;
       setAuthors((prev) => [...prev, savedAuthor]);
-      addAuditLog('New Author Added', savedAuthor.name, 'Added distinguished faculty member');
+      addAuditLog('New Author Added', savedAuthor.name, 'Added author profile');
       return savedAuthor;
     } catch (err: any) {
       console.error('Failed to add author:', err);
@@ -2022,59 +1772,98 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const updateCategory = (updatedCat: Category) => {
+  const updateCategory = async (updatedCat: Category) => {
     setCategories((prev) => {
       const updated = prev.map((c) => (c.id === updatedCat.id ? updatedCat : c));
-      persistToServer('/api/categories', 'PUT', { categories: updated });
+      persistToServer('/api/categories', 'PUT', { categories: updated }).catch(() => {});
       return updated;
     });
   };
 
-  const addBlog = (blogData: Omit<BlogPost, 'id'>) => {
-    const newBlog: BlogPost = {
+  const addBlog = async (blogData: Omit<BlogPost, 'id'>) => {
+    const tempBlog: BlogPost = {
       ...blogData,
       id: `blog-${Date.now()}`,
     };
-    setBlogs((prev) => [newBlog, ...prev]);
-    addAuditLog('Blog Created', newBlog.title, `Added new research dispatch by ${newBlog.author}`);
-    persistToServer('/api/blogs', 'POST', newBlog);
-  };
-
-  const updateBlog = (updatedBlog: BlogPost) => {
-    setBlogs((prev) => prev.map((bg) => (bg.id === updatedBlog.id ? updatedBlog : bg)));
-    addAuditLog('Blog Updated', updatedBlog.title, 'Updated essay content');
-    persistToServer(`/api/blogs/${updatedBlog.id}`, 'PUT', updatedBlog);
-  };
-
-  const deleteBlog = (blogId: string) => {
-    const target = blogs.find((b) => b.id === blogId);
-    setBlogs((prev) => prev.filter((bg) => bg.id !== blogId));
-    if (target) {
-      addAuditLog('Blog Deleted', target.title, `Removed article ID: ${blogId}`);
+    try {
+      const data = await persistToServer('/api/blogs', 'POST', tempBlog);
+      const savedBlog = data?.blog || tempBlog;
+      setBlogs((prev) => [savedBlog, ...prev]);
+      addAuditLog('Blog Created', savedBlog.title, `Added new article by ${savedBlog.author}`);
+    } catch (err) {
+      console.error('Failed to create blog:', err);
+      throw err;
     }
-    persistToServer(`/api/blogs/${blogId}`, 'DELETE', {});
+  };
+
+  const updateBlog = async (updatedBlog: BlogPost) => {
+    try {
+      const data = await persistToServer(`/api/blogs/${updatedBlog.id}`, 'PUT', updatedBlog);
+      const savedBlog = data?.blog || updatedBlog;
+      setBlogs((prev) => prev.map((bg) => (bg.id === updatedBlog.id ? savedBlog : bg)));
+      addAuditLog('Blog Updated', savedBlog.title, 'Updated essay content');
+    } catch (err) {
+      console.error('Failed to update blog:', err);
+      throw err;
+    }
+  };
+
+  const deleteBlog = async (blogId: string) => {
+    const target = blogs.find((b) => b.id === blogId);
+    try {
+      await persistToServer(`/api/blogs/${blogId}`, 'DELETE', {});
+      setBlogs((prev) => prev.filter((bg) => bg.id !== blogId));
+      if (target) {
+        addAuditLog('Blog Deleted', target.title, `Removed article ID: ${blogId}`);
+      }
+    } catch (err) {
+      console.error('Failed to delete blog:', err);
+      throw err;
+    }
   };
 
   // Coupons
-  const addCoupon = (couponData: Omit<Coupon, 'id'>) => {
+  const addCoupon = async (couponData: Omit<Coupon, 'id'>) => {
     const newCoupon: Coupon = {
       ...couponData,
       id: `coup-${Date.now()}`,
     };
-    setCoupons((prev) => [newCoupon, ...prev]);
-    addAuditLog('Coupon Created', newCoupon.code, `Discount: ${newCoupon.discountValue}${newCoupon.discountType === 'percentage' ? '%' : '₹'}`);
+    try {
+      await persistToServer('/api/coupons', 'POST', newCoupon);
+      setCoupons((prev) => [newCoupon, ...prev]);
+      addAuditLog('Coupon Created', newCoupon.code, `Discount: ${newCoupon.discountValue}${newCoupon.discountType === 'percentage' ? '%' : '₹'}`);
+    } catch (err) {
+      console.error('Failed to create coupon:', err);
+      throw err;
+    }
   };
 
   const updateCoupon = (updatedCoupon: Coupon) => {
+    persistToServer(`/api/coupons/${updatedCoupon.id}`, 'PUT', updatedCoupon).catch(() => {});
     setCoupons((prev) => prev.map((c) => (c.id === updatedCoupon.id ? updatedCoupon : c)));
   };
 
-  const deleteCoupon = (couponId: string) => {
-    setCoupons((prev) => prev.filter((c) => c.id !== couponId));
+  const deleteCoupon = async (couponId: string) => {
+    try {
+      await persistToServer(`/api/coupons/${couponId}`, 'DELETE', {});
+      setCoupons((prev) => prev.filter((c) => c.id !== couponId));
+    } catch (err) {
+      console.error('Failed to delete coupon:', err);
+      throw err;
+    }
   };
 
-  const toggleCoupon = (couponId: string) => {
-    setCoupons((prev) => prev.map((c) => (c.id === couponId ? { ...c, isActive: !c.isActive } : c)));
+  const toggleCoupon = async (couponId: string) => {
+    const target = coupons.find((c) => c.id === couponId);
+    if (!target) return;
+    const nextActive = !target.isActive;
+    try {
+      await persistToServer(`/api/coupons/${couponId}`, 'PUT', { isActive: nextActive });
+      setCoupons((prev) => prev.map((c) => (c.id === couponId ? { ...c, isActive: nextActive } : c)));
+    } catch (err) {
+      console.error('Failed to toggle coupon:', err);
+      throw err;
+    }
   };
 
   // Media Management
@@ -2110,24 +1899,25 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return [newItem, ...prev];
     });
     addAuditLog('Media Uploaded', newItem.name, `Folder: ${newItem.folder}`);
-    if (!itemData.id || !itemData.objectKey) {
-      persistToServer('/api/media', 'POST', newItem);
-    }
     return newItem;
   };
 
   const updateMediaItem = (item: MediaItem) => {
     setMediaItems((prev) => prev.map((m) => (m.id === item.id ? item : m)));
     addAuditLog('Media Updated', item.name, 'Updated metadata or caption');
-    persistToServer('/api/media', 'POST', item);
   };
 
-  const deleteMediaItem = (id: string) => {
+  const deleteMediaItem = async (id: string) => {
     const target = mediaItems.find((m) => m.id === id);
-    setMediaItems((prev) => prev.filter((m) => m.id !== id));
-    persistToServer(`/api/media/${id}`, 'DELETE', {});
-    if (target) {
-      addAuditLog('Media Deleted', target.name, `Removed media asset ID: ${id}`);
+    try {
+      await persistToServer(`/api/media/${id}`, 'DELETE', {});
+      setMediaItems((prev) => prev.filter((m) => m.id !== id));
+      if (target) {
+        addAuditLog('Media Deleted', target.name, `Removed media asset ID: ${id}`);
+      }
+    } catch (err) {
+      console.error('Failed to delete media item:', err);
+      throw err;
     }
   };
 
@@ -2168,18 +1958,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const resetToDefaults = () => {
-    setBooks(INITIAL_BOOKS);
-    setAuthors(INITIAL_AUTHORS);
-    setCategories(INITIAL_CATEGORIES);
-    setReviews(INITIAL_REVIEWS);
-    setBlogs(INITIAL_BLOGS);
-    setCoupons(INITIAL_COUPONS);
-    setSettings(INITIAL_SETTINGS);
-    setOrders(DEMO_ORDERS);
-    setMediaItems(INITIAL_MEDIA);
-    setAllUsers(INITIAL_USERS);
-    setAuditLogs(INITIAL_AUDIT_LOGS);
-    localStorage.clear();
+    localStorage.removeItem('sahayak_session_token');
+    localStorage.removeItem('sahayak_cart');
+    localStorage.removeItem('sahayak_wishlist');
+    localStorage.removeItem('sahayak_analytics');
+    window.location.reload();
   };
 
   // Google Merchant Center & Shopping actions
@@ -2278,7 +2061,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const data = await res.json();
         if (data.settings) {
           setSettings(data.settings);
-          localStorage.setItem('sahayak_settings', JSON.stringify(data.settings));
         }
         fetchGoogleMerchantStatus();
         addAuditLog('Google Shopping Settings', 'Merchant Settings', 'Updated Google Merchant configuration');

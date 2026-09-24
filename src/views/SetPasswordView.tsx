@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export const SetPasswordView = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const initialToken = urlParams.get('setupToken') || urlParams.get('token') || '';
+
   const [email, setEmail] = useState('');
+  const [setupToken, setSetupToken] = useState(initialToken);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -10,6 +14,10 @@ export const SetPasswordView = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!setupToken.trim()) {
+      setError('Setup token is required.');
+      return;
+    }
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -19,7 +27,7 @@ export const SetPasswordView = () => {
       const res = await fetch('/api/admin/set-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, setupToken: setupToken.trim(), password }),
       });
       const data = await res.json();
       if (data.success) {
@@ -38,6 +46,7 @@ export const SetPasswordView = () => {
       {error && <p className="text-red-500 mb-4">{error}</p>}
       <form onSubmit={handleSubmit} className="space-y-4">
         <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full p-3 border rounded-xl" />
+        <input type="text" placeholder="One-time Setup Token" value={setupToken} onChange={e => setSetupToken(e.target.value)} required className="w-full p-3 border rounded-xl" />
         <input type="password" placeholder="New Password" value={password} onChange={e => setPassword(e.target.value)} required className="w-full p-3 border rounded-xl" />
         <input type="password" placeholder="Confirm Password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required className="w-full p-3 border rounded-xl" />
         <button type="submit" className="w-full p-3 bg-[#0B192C] text-white rounded-xl font-bold">Set Password</button>
