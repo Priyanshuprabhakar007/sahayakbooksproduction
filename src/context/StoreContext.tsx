@@ -78,7 +78,8 @@ interface StoreContextType {
   couponError: string | null;
 
   // Cart operations
-  addToCart: (book: Book, format?: BookFormat, quantity?: number) => void;
+  addToCart: (book: Book, format?: BookFormat, quantity?: number) => Promise<boolean>;
+  refreshCart: () => Promise<void>;
   updateCartQuantity: (bookId: string, format: BookFormat, quantity: number) => void;
   removeFromCart: (bookId: string, format: BookFormat) => void;
   clearCart: () => void;
@@ -355,25 +356,43 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       try {
         const guestCart: CartItem[] = JSON.parse(guestCartRaw);
         if (Array.isArray(guestCart) && guestCart.length > 0) {
+          let allMergedSuccessfully = true;
           for (const item of guestCart) {
-            await fetch('/api/cart/items', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                bookId: item.bookId,
-                format: item.format,
-                quantity: item.quantity,
-              }),
-            }).catch(() => {});
+            try {
+              const res = await fetch('/api/cart/items', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  bookId: item.bookId,
+                  format: item.format,
+                  quantity: item.quantity,
+                }),
+              });
+              if (!res.ok) {
+                allMergedSuccessfully = false;
+              } else {
+                const d = await res.json();
+                if (!d.success) allMergedSuccessfully = false;
+              }
+            } catch (err) {
+              allMergedSuccessfully = false;
+              console.warn('Failed to merge guest cart item into D1:', item, err);
+            }
           }
+          if (allMergedSuccessfully) {
+            localStorage.removeItem('sahayak_cart');
+          } else {
+            console.warn('Some guest cart items could not be merged; preserving local guest cart backup.');
+          }
+        } else {
+          localStorage.removeItem('sahayak_cart');
         }
       } catch (e) {
-        console.warn('Guest cart merge error:', e);
+        console.warn('Guest cart merge parse error:', e);
       }
-      localStorage.removeItem('sahayak_cart');
     }
 
     try {
@@ -467,8 +486,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   const [cart, setCart] = useState<CartItem[]>(() => {
+    const token = localStorage.getItem('sahayak_session_token');
+    if (token) return []; // Boot with empty cart if authenticated session exists; server cart will load via GET /api/cart
     const saved = localStorage.getItem('sahayak_cart');
-    return saved ? JSON.parse(saved) : [];
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
   });
 
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
@@ -693,8 +722,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [wishlist]);
 
   useEffect(() => {
-    localStorage.setItem('sahayak_cart', JSON.stringify(cart));
-  }, [cart]);
+    if (!sessionToken) {
+      localStorage.setItem('sahayak_cart', JSON.stringify(cart));
+    } else {
+      localStorage.removeItem('sahayak_cart');
+    }
+  }, [cart, sessionToken]);
 
   // Audit log helper
   const addAuditLog = (action: string, resource: string, details: string) => {
@@ -755,7 +788,29 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const cartTotal = Math.max(0, cartSubtotal + cartShipping - cartDiscount);
 
   // Cart operations
-  const addToCart = async (book: Book, format: BookFormat = 'Paperback', quantity: number = 1) => {
+  const refreshCart = useCallback(async (): Promise<void> => {
+    const token = sessionToken || localStorage.getItem('sahayak_session_token');
+    if (!token) return;
+    try {
+      const res = await fetch('/api/cart', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.items)) {
+          setCart(data.items);
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to refresh user cart:', err);
+    }
+  }, [sessionToken]);
+
+  const addToCart = async (
+    book: Book,
+    format: BookFormat = 'Paperback',
+    quantity: number = 1
+  ): Promise<boolean> => {
     if (sessionToken && currentUser) {
       try {
         const res = await fetch('/api/cart/items', {
@@ -766,12 +821,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           },
           body: JSON.stringify({ bookId: book.id, format, quantity }),
         });
+        if (!res.ok) return false;
         const data = await res.json();
         if (data.success && Array.isArray(data.items)) {
           setCart(data.items);
+          trackEvent('add_to_cart', book.title, { format, quantity, price: book.price });
+          setIsCartOpen(true);
+          return true;
         }
+        return false;
       } catch (e) {
         console.warn('Failed to add item to server cart:', e);
+        return false;
       }
     } else {
       setCart((prevCart) => {
@@ -798,9 +859,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           },
         ];
       });
+      trackEvent('add_to_cart', book.title, { format, quantity, price: book.price });
+      setIsCartOpen(true);
+      return true;
     }
-    trackEvent('add_to_cart', book.title, { format, quantity, price: book.price });
-    setIsCartOpen(true);
   };
 
   const updateCartQuantity = async (bookId: string, format: BookFormat, quantity: number) => {
@@ -2132,6 +2194,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         appliedCoupon,
         couponError,
         addToCart,
+        refreshCart,
         updateCartQuantity,
         removeFromCart,
         clearCart,

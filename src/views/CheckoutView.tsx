@@ -209,7 +209,7 @@ export const CheckoutView: React.FC = () => {
                 <img
                   src={item.coverImage}
                   alt={item.title}
-                  className="w-12 h-16 object-cover rounded-lg border border-stone-300 shrink-0"
+                  className="w-12 h-16 object-contain bg-stone-50 rounded-lg border border-stone-300 shrink-0"
                 />
                 <div className="flex-1 min-w-0 flex flex-col justify-between">
                   <div>

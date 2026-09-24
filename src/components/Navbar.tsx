@@ -580,7 +580,7 @@ export const Navbar: React.FC = () => {
                       <img
                         src={book.coverImage}
                         alt={book.title}
-                        className="w-12 h-16 object-cover rounded shadow-md border border-white/10 group-hover:scale-105 transition-transform"
+                        className="w-12 h-16 object-contain bg-stone-900 rounded shadow-md border border-white/10 group-hover:scale-105 transition-transform"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-semibold text-[#FAF7F2] group-hover:text-[#C5A059] truncate">

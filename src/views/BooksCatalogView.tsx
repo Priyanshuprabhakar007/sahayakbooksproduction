@@ -508,7 +508,7 @@ export const BooksCatalogView: React.FC = () => {
                     <img
                       src={book.coverImage}
                       alt={book.title}
-                      className="w-28 sm:w-32 h-40 object-cover rounded-xl border border-stone-300 shadow-sm shrink-0 self-center sm:self-start"
+                      className="w-28 sm:w-32 h-40 object-contain bg-stone-50 rounded-xl border border-stone-300 shadow-sm shrink-0 self-center sm:self-start"
                     />
                     <div className="flex-1 flex flex-col justify-between">
                       <div>

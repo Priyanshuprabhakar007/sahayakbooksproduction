@@ -270,16 +270,16 @@ function mapUserRow(u: any) {
 
 function getCorsHeaders(request: Request, env: Env) {
   const origin = request.headers.get('Origin') || '';
-  const allowedOriginsRaw = env.ALLOWED_ORIGINS || 'https://sahayakbooks.com,https://sahayakbooks.netlify.app,http://localhost:3000,http://localhost:5173';
+  const allowedOriginsRaw = env.ALLOWED_ORIGINS || 'https://sahayakbook.netlify.app,https://sahayakbooks.com,https://www.sahayakbooks.com,https://sahayakbooks.netlify.app,http://localhost:3000,http://localhost:5173';
   const allowedOrigins = allowedOriginsRaw.split(',').map(o => o.trim().toLowerCase());
 
   let allowedOrigin = '';
   if (origin && allowedOrigins.includes(origin.toLowerCase())) {
     allowedOrigin = origin;
   } else if (!origin) {
-    allowedOrigin = allowedOrigins[0] || '*';
+    allowedOrigin = allowedOrigins[0] || 'https://sahayakbook.netlify.app';
   } else {
-    allowedOrigin = allowedOrigins[0] || 'https://sahayakbooks.com';
+    allowedOrigin = allowedOrigins[0] || 'https://sahayakbook.netlify.app';
   }
 
   return {

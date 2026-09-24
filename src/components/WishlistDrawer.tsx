@@ -152,7 +152,7 @@ export const WishlistDrawer: React.FC = () => {
                         <img
                           src={book.coverImage}
                           alt={book.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="w-full h-full object-contain bg-stone-50 group-hover:scale-105 transition-transform duration-300"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-stone-300">

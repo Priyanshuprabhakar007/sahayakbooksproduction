@@ -139,7 +139,7 @@ export const CartDrawer: React.FC = () => {
                 <img
                   src={item.coverImage}
                   alt={item.title}
-                  className="w-16 h-22 object-cover rounded-lg border border-stone-300 shadow-sm shrink-0"
+                  className="w-16 h-22 object-contain bg-stone-50 rounded-lg border border-stone-300 shadow-sm shrink-0"
                 />
                 <div className="flex-1 min-w-0 flex flex-col justify-between">
                   <div>

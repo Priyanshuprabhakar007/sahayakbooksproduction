@@ -100,7 +100,7 @@ export const QuickViewModal: React.FC = () => {
               id="quickview-book-main-image"
               src={images[selectedImgIndex] || book.coverImage}
               alt={book.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain object-center bg-stone-50"
             />
             <div className="absolute inset-0 pointer-events-none book-spine-effect" />
 

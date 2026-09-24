@@ -45,6 +45,7 @@ export const CustomerAccountView: React.FC = () => {
     toggleSaveBook,
     toggleSaveArticle,
     addToCart,
+    refreshCart,
     cart,
     updateCartQuantity,
     removeFromCart,
@@ -72,6 +73,12 @@ export const CustomerAccountView: React.FC = () => {
   };
 
   const activeTab = getSubTab();
+
+  React.useEffect(() => {
+    if (currentUser && activeTab === 'cart') {
+      refreshCart();
+    }
+  }, [activeTab, currentUser, refreshCart]);
 
   // Profile Form State
   const [profileName, setProfileName] = useState(currentUser?.name || '');
@@ -572,7 +579,7 @@ export const CustomerAccountView: React.FC = () => {
                                 <img
                                   src={item.coverImage}
                                   alt={item.title}
-                                  className="w-12 h-16 object-cover rounded-lg shadow-sm border border-gray-200"
+                                  className="w-12 h-16 object-contain bg-stone-50 rounded-lg shadow-sm border border-gray-200"
                                 />
                                 <div>
                                   <p className="text-sm font-semibold text-[#0B192C] font-serif">{item.title}</p>
@@ -628,7 +635,7 @@ export const CustomerAccountView: React.FC = () => {
                         <img
                           src={book.coverImage}
                           alt={book.title}
-                          className="w-20 h-28 object-cover rounded-xl shadow-sm border border-gray-200 flex-shrink-0"
+                          className="w-20 h-28 object-contain bg-stone-50 rounded-xl shadow-sm border border-gray-200 flex-shrink-0"
                         />
                         <div className="flex-1 flex flex-col justify-between">
                           <div>
@@ -917,7 +924,7 @@ export const CustomerAccountView: React.FC = () => {
                             <img
                               src={item.coverImage}
                               alt={item.title}
-                              className="w-14 h-20 object-cover rounded-lg shadow border border-stone-200 flex-shrink-0"
+                              className="w-14 h-20 object-contain bg-stone-50 rounded-lg shadow border border-stone-200 flex-shrink-0"
                             />
                             <div>
                               <h4 className="font-serif font-bold text-sm text-[#0B192C]">{item.title}</h4>

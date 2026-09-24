@@ -21,6 +21,8 @@ export const BookCard: React.FC<BookCardProps> = ({ book, compact = false }) => 
 
   const [selectedFormat, setSelectedFormat] = useState<BookFormat>(book.formats[0] || 'Paperback');
   const [isAddedRecently, setIsAddedRecently] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const [addFailed, setAddFailed] = useState(false);
   const isWishlisted = isInWishlist(book.id);
 
   const handleCardClick = () => {
@@ -28,11 +30,22 @@ export const BookCard: React.FC<BookCardProps> = ({ book, compact = false }) => 
     navigate(`/books/${book.slug}`);
   };
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    addToCart(book, selectedFormat, 1);
-    setIsAddedRecently(true);
-    setTimeout(() => setIsAddedRecently(false), 2000);
+    if (isAdding || !book.inStock) return;
+    setIsAdding(true);
+    setAddFailed(false);
+
+    const success = await addToCart(book, selectedFormat, 1);
+    setIsAdding(false);
+
+    if (success) {
+      setIsAddedRecently(true);
+      setTimeout(() => setIsAddedRecently(false), 2000);
+    } else {
+      setAddFailed(true);
+      setTimeout(() => setAddFailed(false), 2500);
+    }
   };
 
   const handleWishlist = (e: React.MouseEvent) => {
@@ -57,14 +70,14 @@ export const BookCard: React.FC<BookCardProps> = ({ book, compact = false }) => 
       className="group relative bg-[#FAF7F2] rounded-2xl border border-stone-200/80 hover:border-[#C5A059]/60 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden cursor-pointer"
     >
       {/* Cover Image & Hover Badges Container */}
-      <div className="relative w-full aspect-[3/4] bg-stone-100 overflow-hidden flex items-center justify-center p-4">
-        {/* Book Visual with 3D Tilt Effect on hover */}
-        <div className="relative w-full h-full max-h-[280px] rounded-lg shadow-md group-hover:shadow-2xl transition-all duration-500 transform group-hover:-translate-y-2 group-hover:rotate-1 group-hover:scale-[1.03] overflow-hidden border border-stone-300/60">
+      <div className="relative w-full h-48 sm:h-56 md:h-64 bg-stone-100/90 overflow-hidden flex items-center justify-center p-3 sm:p-4">
+        {/* Book Visual with 3D shadow effect */}
+        <div className="relative w-full h-full flex items-center justify-center rounded-lg shadow-sm group-hover:shadow-xl transition-all duration-500 transform group-hover:-translate-y-1 group-hover:scale-[1.02] overflow-hidden bg-white/40 border border-stone-200/60 p-1">
           <img
             src={book.coverImage}
             alt={book.title}
             loading="lazy"
-            className="w-full h-full object-cover object-center"
+            className="max-w-full max-h-full w-auto h-auto object-contain object-center drop-shadow-md"
           />
           <div className="absolute inset-0 pointer-events-none book-spine-effect" />
         </div>
@@ -188,10 +201,12 @@ export const BookCard: React.FC<BookCardProps> = ({ book, compact = false }) => 
           <button
             id={`add-to-cart-${book.id}`}
             onClick={handleAddToCart}
-            disabled={!book.inStock}
+            disabled={!book.inStock || isAdding}
             className={`py-2 px-3.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm ${
               isAddedRecently
                 ? 'bg-emerald-700 text-white'
+                : addFailed
+                ? 'bg-rose-600 text-white'
                 : book.inStock
                 ? 'bg-[#0B192C] hover:bg-[#C5A059] hover:text-[#0B192C] text-[#FAF7F2]'
                 : 'bg-stone-200 text-stone-400 cursor-not-allowed'
@@ -203,6 +218,10 @@ export const BookCard: React.FC<BookCardProps> = ({ book, compact = false }) => 
                 <Check className="w-3.5 h-3.5" />
                 <span>Added!</span>
               </>
+            ) : addFailed ? (
+              <span>Try Again</span>
+            ) : isAdding ? (
+              <span>Adding...</span>
             ) : (
               <>
                 <ShoppingBag className="w-3.5 h-3.5" />

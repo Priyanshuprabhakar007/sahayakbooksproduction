@@ -101,7 +101,7 @@ export const HomeView: React.FC = () => {
                   <img
                     src={spotlightBook.coverImage}
                     alt={spotlightBook.title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain object-center bg-stone-100"
                   />
                   <div className="absolute inset-0 pointer-events-none book-spine-effect" />
                   <div className="absolute top-3 left-3 bg-[#C5A059] text-[#0B192C] text-xs font-extrabold px-3 py-1 rounded-full shadow-lg">
