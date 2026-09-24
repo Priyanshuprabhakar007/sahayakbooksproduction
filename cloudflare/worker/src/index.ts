@@ -36,12 +36,23 @@ async function hashToken(token: string): Promise<string> {
   return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+function isAuthorizedAdminEmail(email: string) {
+  const normalized = (email || '').trim().toLowerCase();
+  return normalized === 'admin@sahayakassociates.org' ||
+         normalized === 'editor@sahayakassociates.org';
+}
+
+function isAuthorizedAdmin(auth: { role: string; email: string } | null) {
+  if (!auth) return false;
+  return ['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(auth.role) && isAuthorizedAdminEmail(auth.email);
+}
+
 // Helper to check authentication
-async function checkAuth(env: Env, request: Request, ctx: ExecutionContext): Promise<{role: string, userId: string} | null> {
+async function checkAuth(env: Env, request: Request, ctx: ExecutionContext): Promise<{role: string, userId: string, email: string} | null> {
   const token = request.headers.get('Authorization')?.replace('Bearer ', '');
   if (!token) return null;
   const hashedToken = await hashToken(token);
-  const user = await env.DB.prepare('SELECT users.id, users.role, users.status FROM users JOIN sessions ON users.id = sessions.user_id WHERE sessions.token_hash = ? AND sessions.expires_at > ?').bind(hashedToken, new Date().toISOString()).first<{id: string, role: string, status: string}>();
+  const user = await env.DB.prepare('SELECT users.id, users.email, users.role, users.status FROM users JOIN sessions ON users.id = sessions.user_id WHERE sessions.token_hash = ? AND sessions.expires_at > ?').bind(hashedToken, new Date().toISOString()).first<{id: string, email: string, role: string, status: string}>();
   if (!user || (user.status || '').toUpperCase() !== 'ACTIVE') return null;
   
   // Optional: Update last_used_at
@@ -49,6 +60,7 @@ async function checkAuth(env: Env, request: Request, ctx: ExecutionContext): Pro
   
   return {
     userId: user.id,
+    email: user.email,
     role: user.role
   };
 }
@@ -444,8 +456,8 @@ export default {
         if (!user) {
             return new Response(JSON.stringify({ success: false, error: 'User not found' }), { status: 404, headers: corsHeaders });
         }
-        if (!['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(user.role)) {
-            return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 403, headers: corsHeaders });
+        if (!isAuthorizedAdminEmail(normEmail) || !['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(user.role)) {
+            return new Response(JSON.stringify({ success: false, error: 'Unauthorized: Staff admin privileges required' }), { status: 403, headers: corsHeaders });
         }
         if (user.password_hash !== 'MIGRATION_RESET_REQUIRED') {
           return new Response(JSON.stringify({ success: false, error: 'Password has already been initialized.' }), { status: 403, headers: corsHeaders });
@@ -510,8 +522,8 @@ export default {
         const idOrSlug = path.replace('/api/books/', '');
         if (request.method === 'PUT') {
           const auth = await checkAuth(env, request, ctx);
-          if (!auth || !['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(auth.role)) {
-            return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+          if (!isAuthorizedAdmin(auth)) {
+            return new Response(JSON.stringify({ success: false, error: 'Unauthorized: Staff admin privileges required' }), { status: 403, headers: corsHeaders });
           }
 
           const currentBook = await getBookByIdOrSlug(env.DB, idOrSlug);
@@ -574,8 +586,8 @@ export default {
       if (path === '/api/authors') {
         if (request.method === 'POST') {
           const auth = await checkAuth(env, request, ctx);
-          if (!auth || !['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(auth.role)) {
-            return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+          if (!isAuthorizedAdmin(auth)) {
+            return new Response(JSON.stringify({ success: false, error: 'Unauthorized: Staff admin privileges required' }), { status: 403, headers: corsHeaders });
           }
 
           const body = await request.json() as any;
@@ -627,8 +639,8 @@ export default {
 
         if (request.method === 'PUT') {
           const auth = await checkAuth(env, request, ctx);
-          if (!auth || !['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(auth.role)) {
-            return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+          if (!isAuthorizedAdmin(auth)) {
+            return new Response(JSON.stringify({ success: false, error: 'Unauthorized: Staff admin privileges required' }), { status: 403, headers: corsHeaders });
           }
 
           const currentAuthor = await getAuthorByIdOrSlug(env.DB, idOrSlug);
@@ -693,8 +705,8 @@ export default {
 
         if (request.method === 'DELETE') {
           const auth = await checkAuth(env, request, ctx);
-          if (!auth || !['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(auth.role)) {
-            return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+          if (!isAuthorizedAdmin(auth)) {
+            return new Response(JSON.stringify({ success: false, error: 'Unauthorized: Staff admin privileges required' }), { status: 403, headers: corsHeaders });
           }
 
           const currentAuthor = await getAuthorByIdOrSlug(env.DB, idOrSlug);
@@ -763,8 +775,8 @@ export default {
 
       if (path === '/api/media/test-connection' && request.method === 'POST') {
         const auth = await checkAuth(env, request, ctx);
-        if (!auth || !['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(auth.role)) {
-          return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+        if (!isAuthorizedAdmin(auth)) {
+          return new Response(JSON.stringify({ success: false, error: 'Unauthorized: Staff admin privileges required' }), { status: 403, headers: corsHeaders });
         }
         if (!env.MEDIA_BUCKET) {
           return new Response(JSON.stringify({ success: false, message: 'MEDIA_BUCKET binding not configured' }), { headers: corsHeaders });
@@ -779,8 +791,8 @@ export default {
 
       if (path === '/api/media/upload' && request.method === 'POST') {
         const auth = await checkAuth(env, request, ctx);
-        if (!auth || !['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(auth.role)) {
-          return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+        if (!isAuthorizedAdmin(auth)) {
+          return new Response(JSON.stringify({ success: false, error: 'Unauthorized: Staff admin privileges required' }), { status: 403, headers: corsHeaders });
         }
         if (!env.MEDIA_BUCKET) {
           return new Response(JSON.stringify({ success: false, error: 'R2 MEDIA_BUCKET binding not configured' }), { status: 500, headers: corsHeaders });
@@ -874,8 +886,8 @@ export default {
       if (path.startsWith('/api/media/') && request.method === 'DELETE') {
         const mediaId = path.replace('/api/media/', '');
         const auth = await checkAuth(env, request, ctx);
-        if (!auth || !['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(auth.role)) {
-          return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+        if (!isAuthorizedAdmin(auth)) {
+          return new Response(JSON.stringify({ success: false, error: 'Unauthorized: Staff admin privileges required' }), { status: 403, headers: corsHeaders });
         }
 
         const media = await env.DB.prepare('SELECT * FROM media WHERE id = ?').bind(mediaId).first<any>();

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+import { isAuthorizedAdminAccount } from '../utils/auth';
 import {
   Book,
   Author,
@@ -555,13 +556,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           if (data.success && data.user) {
             setCurrentUser(data.user);
             localStorage.setItem('sahayak_current_user', JSON.stringify(data.user));
-            if (
-              data.user.role === 'SUPER_ADMIN' ||
-              data.user.role === 'ADMIN' ||
-              data.user.role === 'EDITOR'
-            ) {
+            if (isAuthorizedAdminAccount(data.user)) {
               setAdminUser(data.user);
               localStorage.setItem('sahayak_admin_user', JSON.stringify(data.user));
+            } else {
+              setAdminUser(null);
+              localStorage.removeItem('sahayak_admin_user');
             }
           } else {
             setSessionToken(null);
@@ -578,21 +578,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [sessionToken]);
 
-  // Dedicated Admin / Staff Session
-  const [adminUser, setAdminUser] = useState<UserProfile | null>(() => {
-    const saved = localStorage.getItem('sahayak_admin_user');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        return null;
-      }
-    }
-    return null;
-  });
+  // Dedicated Admin / Staff Session - Must be verified by server session, no stale local storage boot
+  const [adminUser, setAdminUser] = useState<UserProfile | null>(null);
 
-  const hasAdminAccess = !!adminUser && (adminUser.role === 'SUPER_ADMIN' || adminUser.role === 'ADMIN' || adminUser.role === 'EDITOR');
-  const isSuperAdmin = !!adminUser && (adminUser.role === 'SUPER_ADMIN' || adminUser.role === 'ADMIN');
+  const hasAdminAccess = isAuthorizedAdminAccount(adminUser);
+  const isSuperAdmin = isAuthorizedAdminAccount(adminUser) && (adminUser?.role === 'SUPER_ADMIN' || adminUser?.role === 'ADMIN');
 
   // Wishlist & Cart
   const [wishlist, setWishlist] = useState<string[]>(() => {
@@ -1149,7 +1139,23 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const logout = () => {
+    if (sessionToken || localStorage.getItem('sahayak_session_token')) {
+      const token = sessionToken || localStorage.getItem('sahayak_session_token');
+      fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sessionToken: token }),
+      }).catch((e) => console.warn('Logout notification error:', e));
+    }
+    setSessionToken(null);
     setCurrentUser(null);
+    setAdminUser(null);
+    localStorage.removeItem('sahayak_session_token');
+    localStorage.removeItem('sahayak_current_user');
+    localStorage.removeItem('sahayak_admin_user');
     trackEvent('click', 'Customer Logged Out');
   };
 
@@ -1170,19 +1176,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
       const data = await res.json();
       if (data.success) {
-        setSessionToken(data.sessionToken);
-        localStorage.setItem('sahayak_session_token', data.sessionToken);
-        setCurrentUser(data.user);
-        localStorage.setItem('sahayak_current_user', JSON.stringify(data.user));
-        if (
-          data.user.role === 'SUPER_ADMIN' ||
-          data.user.role === 'ADMIN' ||
-          data.user.role === 'EDITOR'
-        ) {
+        if (isAuthorizedAdminAccount(data.user)) {
+          setSessionToken(data.sessionToken);
+          localStorage.setItem('sahayak_session_token', data.sessionToken);
+          setCurrentUser(data.user);
+          localStorage.setItem('sahayak_current_user', JSON.stringify(data.user));
           setAdminUser(data.user);
+          localStorage.setItem('sahayak_admin_user', JSON.stringify(data.user));
+          addAuditLog('Admin Login', 'Admin Session', `Successful login as ${data.user.role} (${data.user.email})`);
+          return { success: true };
+        } else {
+          setAdminUser(null);
+          localStorage.removeItem('sahayak_admin_user');
+          return { success: false, error: 'This account is not authorized for Admin access.' };
         }
-        addAuditLog('Admin Login', 'Admin Session', `Successful login as ${data.user.role} (${data.user.email})`);
-        return { success: true };
       } else {
         return { success: false, error: data.error || 'Invalid credentials' };
       }
@@ -1192,12 +1199,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const adminLogout = async () => {
-    const token = localStorage.getItem('sahayak_session_token');
+    const token = sessionToken || localStorage.getItem('sahayak_session_token');
     if (token) {
       await fetch('/api/auth/logout', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
-      });
+      }).catch(() => {});
     }
     addAuditLog('Admin Logout', 'Admin Session', `Logged out admin session`);
     setSessionToken(null);
@@ -1243,9 +1250,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           localStorage.setItem('sahayak_session_token', json.sessionToken);
         }
         if (json.user) {
-          setCurrentUser(json.user);
-          localStorage.setItem('sahayak_current_user', JSON.stringify(json.user));
+          const customerUser = { ...json.user, role: 'CUSTOMER' as const };
+          setCurrentUser(customerUser);
+          localStorage.setItem('sahayak_current_user', JSON.stringify(customerUser));
         }
+        setAdminUser(null);
+        localStorage.removeItem('sahayak_admin_user');
         return { success: true, message: json.message, verifyToken: json.verifyToken };
       } else {
         return { success: false, error: json.error || 'Registration failed.' };
@@ -1271,6 +1281,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (json.user) {
           setCurrentUser(json.user);
           localStorage.setItem('sahayak_current_user', JSON.stringify(json.user));
+          if (isAuthorizedAdminAccount(json.user)) {
+            setAdminUser(json.user);
+            localStorage.setItem('sahayak_admin_user', JSON.stringify(json.user));
+          } else {
+            setAdminUser(null);
+            localStorage.removeItem('sahayak_admin_user');
+          }
         }
         return { success: true, message: json.message };
       } else {
@@ -1282,15 +1299,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const logoutCustomer = async () => {
-    if (sessionToken) {
+    const token = sessionToken || localStorage.getItem('sahayak_session_token');
+    if (token) {
       try {
         await fetch('/api/auth/logout', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${sessionToken}`,
+            Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ sessionToken }),
+          body: JSON.stringify({ sessionToken: token }),
         });
       } catch (e) {
         console.warn('Logout notification error:', e);
@@ -1298,8 +1316,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     setSessionToken(null);
     setCurrentUser(null);
+    setAdminUser(null);
     localStorage.removeItem('sahayak_session_token');
     localStorage.removeItem('sahayak_current_user');
+    localStorage.removeItem('sahayak_admin_user');
   };
 
   const forgotPassword = async (email: string) => {
