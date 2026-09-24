@@ -53,6 +53,61 @@ async function checkAuth(env: Env, request: Request, ctx: ExecutionContext): Pro
   };
 }
 
+// PBKDF2 password generation compatible with verifyPassword
+async function hashPassword(password: string): Promise<string> {
+  const iterations = 100000;
+  const saltBytes = crypto.getRandomValues(new Uint8Array(16));
+  const saltHex = Array.from(saltBytes)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+
+  const encoder = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', encoder.encode(password), { name: 'PBKDF2' }, false, ['deriveBits']);
+  const derivedBits = await crypto.subtle.deriveBits({
+    name: 'PBKDF2',
+    salt: encoder.encode(saltHex),
+    iterations: iterations,
+    hash: 'SHA-512'
+  }, keyMaterial, 512);
+
+  const hash = Array.from(new Uint8Array(derivedBits)).map(b => b.toString(16).padStart(2, '0')).join('');
+  return `pbkdf2$${iterations}$${saltHex}$${hash}`;
+}
+
+function safeJsonParse(str: string | null | undefined, fallback: any = []) {
+  if (!str) return fallback;
+  try {
+    return JSON.parse(str);
+  } catch {
+    return fallback;
+  }
+}
+
+function mapUserRow(u: any) {
+  if (!u) return null;
+  return {
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    phone: u.phone || '',
+    avatar: u.avatar || '',
+    role: u.role || 'CUSTOMER',
+    status: u.status || 'ACTIVE',
+    emailVerified: u.email_verified === 1 || u.email_verified === true || u.email_verified === '1',
+    city: u.city || '',
+    country: u.country || '',
+    addresses: typeof u.addresses === 'string' ? safeJsonParse(u.addresses, []) : (u.addresses || []),
+    wishlist: typeof u.wishlist === 'string' ? safeJsonParse(u.wishlist, []) : (u.wishlist || []),
+    savedBookIds: typeof u.saved_book_ids === 'string' ? safeJsonParse(u.saved_book_ids, []) : (u.saved_book_ids || []),
+    savedArticleIds: typeof u.saved_article_ids === 'string' ? safeJsonParse(u.saved_article_ids, []) : (u.saved_article_ids || []),
+    orderIds: typeof u.order_ids === 'string' ? safeJsonParse(u.order_ids, []) : (u.order_ids || []),
+    savedEbooks: typeof u.saved_ebooks === 'string' ? safeJsonParse(u.saved_ebooks, []) : (u.saved_ebooks || []),
+    createdAt: u.created_at,
+    updatedAt: u.updated_at,
+    lastLoginAt: u.last_login_at,
+  };
+}
+
 // PBKDF2 verification compatible with server/auth.ts
 async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
   if (!storedHash || !storedHash.startsWith('pbkdf2$')) return false;
@@ -92,15 +147,129 @@ export default {
 
     try {
       // Auth endpoints
+      if (path === '/api/auth/register' && request.method === 'POST') {
+        let body: any = {};
+        try {
+          body = await request.json();
+        } catch {
+          return new Response(JSON.stringify({ success: false, error: 'Invalid JSON input' }), { status: 400, headers: corsHeaders });
+        }
+
+        const { name, email, phone, password, confirmPassword, agreeToTerms } = body;
+
+        if (!name || typeof name !== 'string' || !name.trim()) {
+          return new Response(JSON.stringify({ success: false, error: 'Full name is required.' }), { status: 400, headers: corsHeaders });
+        }
+
+        const normEmail = (email || '').toString().trim().toLowerCase();
+        if (!normEmail || !normEmail.includes('@') || !normEmail.includes('.')) {
+          return new Response(JSON.stringify({ success: false, error: 'Valid email address is required.' }), { status: 400, headers: corsHeaders });
+        }
+
+        if (!password || typeof password !== 'string' || password.length < 8) {
+          return new Response(JSON.stringify({ success: false, error: 'Password must be at least 8 characters long.' }), { status: 400, headers: corsHeaders });
+        }
+
+        if (confirmPassword !== password) {
+          return new Response(JSON.stringify({ success: false, error: 'Passwords do not match.' }), { status: 400, headers: corsHeaders });
+        }
+
+        if (!agreeToTerms) {
+          return new Response(JSON.stringify({ success: false, error: 'You must agree to the Terms of Service.' }), { status: 400, headers: corsHeaders });
+        }
+
+        // Check if email already exists
+        const existingUser = await env.DB.prepare('SELECT id FROM users WHERE LOWER(email) = ?').bind(normEmail).first();
+        if (existingUser) {
+          return new Response(
+            JSON.stringify({ success: false, error: 'An account with this email already exists.' }),
+            { status: 409, headers: corsHeaders }
+          );
+        }
+
+        // Password hashing
+        const passwordHash = await hashPassword(password);
+        const userId = 'usr_' + crypto.randomUUID().replace(/-/g, '');
+        const now = new Date().toISOString();
+
+        // Create customer user in D1
+        await env.DB.prepare(`
+          INSERT INTO users (
+            id, name, email, phone, password_hash, role, status, email_verified,
+            addresses, wishlist, saved_book_ids, saved_article_ids, order_ids, saved_ebooks,
+            created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          userId,
+          name.trim(),
+          normEmail,
+          phone ? phone.trim() : '',
+          passwordHash,
+          'CUSTOMER',
+          'ACTIVE',
+          1,
+          '[]',
+          '[]',
+          '[]',
+          '[]',
+          '[]',
+          '[]',
+          now,
+          now
+        ).run();
+
+        // Create session
+        const rawToken = 'sess_' + crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '');
+        const hashedToken = await hashToken(rawToken);
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 1 day
+
+        await env.DB.prepare(`
+          INSERT INTO sessions (id, user_id, token_hash, role, expires_at, created_at)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `).bind(crypto.randomUUID(), userId, hashedToken, 'CUSTOMER', expiresAt, now).run();
+
+        const userObj = {
+          id: userId,
+          name: name.trim(),
+          email: normEmail,
+          phone: phone ? phone.trim() : '',
+          role: 'CUSTOMER',
+          status: 'ACTIVE',
+          emailVerified: true,
+          savedBookIds: [],
+          savedArticleIds: [],
+          wishlist: [],
+          orderIds: [],
+          savedEbooks: [],
+          createdAt: now,
+          updatedAt: now,
+        };
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: 'Account created successfully.',
+            sessionToken: rawToken,
+            user: userObj,
+          }),
+          { status: 200, headers: corsHeaders }
+        );
+      }
+
       if (path === '/api/auth/login' && request.method === 'POST') {
         const { email, password, rememberMe } = await request.json() as {email: string, password: string, rememberMe?: boolean};
-        const user = await env.DB.prepare('SELECT id, name, email, role, status, password_hash FROM users WHERE email = ?').bind(email.toLowerCase().trim()).first<{id: string, name: string, email: string, role: string, status: string, password_hash: string}>();
+        if (!email || !password) {
+          return new Response(JSON.stringify({ success: false, error: 'Email and password are required.' }), { status: 400, headers: corsHeaders });
+        }
+
+        const normEmail = email.toLowerCase().trim();
+        const userRow = await env.DB.prepare('SELECT * FROM users WHERE LOWER(email) = ?').bind(normEmail).first();
         
-        if (!user || (user.status || '').toUpperCase() !== 'ACTIVE' || user.password_hash === 'MIGRATION_RESET_REQUIRED') {
+        if (!userRow || (userRow.status || '').toUpperCase() !== 'ACTIVE' || userRow.password_hash === 'MIGRATION_RESET_REQUIRED') {
           return new Response(JSON.stringify({ success: false, error: 'Invalid credentials' }), { status: 401, headers: corsHeaders });
         }
 
-        if (!(await verifyPassword(password, user.password_hash))) {
+        if (!(await verifyPassword(password, userRow.password_hash))) {
           return new Response(JSON.stringify({ success: false, error: 'Invalid credentials' }), { status: 401, headers: corsHeaders });
         }
 
@@ -108,18 +277,152 @@ export default {
         const hashedToken = await hashToken(rawToken);
         const durationMs = (rememberMe ? 30 : 1) * 24 * 60 * 60 * 1000;
         const expiresAt = new Date(Date.now() + durationMs).toISOString();
+        const now = new Date().toISOString();
         
-        await env.DB.prepare('INSERT INTO sessions (id, user_id, token_hash, role, expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?)').bind(crypto.randomUUID(), user.id, hashedToken, user.role, expiresAt, new Date().toISOString()).run();
+        await env.DB.prepare('INSERT INTO sessions (id, user_id, token_hash, role, expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?)').bind(crypto.randomUUID(), userRow.id, hashedToken, userRow.role, expiresAt, now).run();
 
-        return new Response(JSON.stringify({ success: true, sessionToken: rawToken, user: { id: user.id, name: user.name, email: user.email, role: user.role, status: user.status } }), { headers: corsHeaders });
+        // Update last_login_at
+        ctx.waitUntil(env.DB.prepare('UPDATE users SET last_login_at = ? WHERE id = ?').bind(now, userRow.id).run());
+
+        const mappedUser = mapUserRow({ ...userRow, last_login_at: now });
+
+        return new Response(JSON.stringify({ success: true, message: 'Login successful', sessionToken: rawToken, user: mappedUser }), { headers: corsHeaders });
       }
 
       if (path === '/api/auth/me' && request.method === 'GET') {
         const auth = await checkAuth(env, request, ctx);
         if (!auth) return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
-        const user = await env.DB.prepare('SELECT id, name, email, role, status FROM users WHERE id = ?').bind(auth.userId).first();
-        if (!user) return new Response(JSON.stringify({ success: false, error: 'User not found' }), { status: 401, headers: corsHeaders });
-        return new Response(JSON.stringify({ success: true, user }), { headers: corsHeaders });
+        const userRow = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(auth.userId).first();
+        if (!userRow) return new Response(JSON.stringify({ success: false, error: 'User not found' }), { status: 401, headers: corsHeaders });
+        return new Response(JSON.stringify({ success: true, user: mapUserRow(userRow) }), { headers: corsHeaders });
+      }
+
+      if (path === '/api/auth/update-profile' && request.method === 'POST') {
+        const auth = await checkAuth(env, request, ctx);
+        if (!auth) return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+
+        const body = await request.json() as any;
+        const { name, phone, city, country, avatar } = body;
+        const now = new Date().toISOString();
+
+        const userRow = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(auth.userId).first();
+        if (!userRow) return new Response(JSON.stringify({ success: false, error: 'User not found' }), { status: 404, headers: corsHeaders });
+
+        const newName = name !== undefined ? name.trim() : userRow.name;
+        const newPhone = phone !== undefined ? phone.trim() : userRow.phone;
+        const newCity = city !== undefined ? city.trim() : userRow.city;
+        const newCountry = country !== undefined ? country.trim() : userRow.country;
+        const newAvatar = avatar !== undefined ? avatar.trim() : userRow.avatar;
+
+        await env.DB.prepare(`
+          UPDATE users SET
+            name = ?,
+            phone = ?,
+            city = ?,
+            country = ?,
+            avatar = ?,
+            updated_at = ?
+          WHERE id = ?
+        `).bind(newName, newPhone, newCity, newCountry, newAvatar, now, auth.userId).run();
+
+        const updatedRow = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(auth.userId).first();
+        return new Response(
+          JSON.stringify({ success: true, message: 'Profile updated successfully.', user: mapUserRow(updatedRow) }),
+          { headers: corsHeaders }
+        );
+      }
+
+      if (path === '/api/auth/change-password' && request.method === 'POST') {
+        const auth = await checkAuth(env, request, ctx);
+        if (!auth) return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+
+        const { currentPassword, newPassword, confirmPassword } = await request.json() as any;
+        if (!currentPassword || !newPassword || !confirmPassword) {
+          return new Response(JSON.stringify({ success: false, error: 'All fields are required.' }), { status: 400, headers: corsHeaders });
+        }
+        if (newPassword !== confirmPassword) {
+          return new Response(JSON.stringify({ success: false, error: 'New passwords do not match.' }), { status: 400, headers: corsHeaders });
+        }
+        if (newPassword.length < 8) {
+          return new Response(JSON.stringify({ success: false, error: 'New password must be at least 8 characters long.' }), { status: 400, headers: corsHeaders });
+        }
+
+        const userRow = await env.DB.prepare('SELECT password_hash FROM users WHERE id = ?').bind(auth.userId).first<{ password_hash: string }>();
+        if (!userRow || !(await verifyPassword(currentPassword, userRow.password_hash))) {
+          return new Response(JSON.stringify({ success: false, error: 'Current password is incorrect.' }), { status: 400, headers: corsHeaders });
+        }
+
+        const newHash = await hashPassword(newPassword);
+        const now = new Date().toISOString();
+        await env.DB.prepare('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?').bind(newHash, now, auth.userId).run();
+
+        return new Response(JSON.stringify({ success: true, message: 'Password changed successfully.' }), { headers: corsHeaders });
+      }
+
+      if (path === '/api/auth/toggle-save-book' && request.method === 'POST') {
+        const auth = await checkAuth(env, request, ctx);
+        if (!auth) return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+
+        const { bookId } = await request.json() as { bookId: string };
+        if (!bookId) return new Response(JSON.stringify({ success: false, error: 'Book ID is required.' }), { status: 400, headers: corsHeaders });
+
+        const userRow = await env.DB.prepare('SELECT saved_book_ids FROM users WHERE id = ?').bind(auth.userId).first<{ saved_book_ids: string }>();
+        let savedIds: string[] = typeof userRow?.saved_book_ids === 'string' ? safeJsonParse(userRow.saved_book_ids, []) : [];
+
+        let isSaved = false;
+        if (savedIds.includes(bookId)) {
+          savedIds = savedIds.filter(id => id !== bookId);
+          isSaved = false;
+        } else {
+          savedIds.push(bookId);
+          isSaved = true;
+        }
+
+        const now = new Date().toISOString();
+        await env.DB.prepare('UPDATE users SET saved_book_ids = ?, updated_at = ? WHERE id = ?').bind(JSON.stringify(savedIds), now, auth.userId).run();
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            isSaved,
+            savedBookIds: savedIds,
+            message: isSaved ? 'Book saved to library.' : 'Book removed from saved library.',
+          }),
+          { headers: corsHeaders }
+        );
+      }
+
+      if (path === '/api/auth/toggle-save-article' && request.method === 'POST') {
+        const auth = await checkAuth(env, request, ctx);
+        if (!auth) return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+
+        const { blogId } = await request.json() as { blogId: string };
+        if (!blogId) return new Response(JSON.stringify({ success: false, error: 'Article ID is required.' }), { status: 400, headers: corsHeaders });
+
+        const userRow = await env.DB.prepare('SELECT saved_article_ids FROM users WHERE id = ?').bind(auth.userId).first<{ saved_article_ids: string }>();
+        let savedIds: string[] = typeof userRow?.saved_article_ids === 'string' ? safeJsonParse(userRow.saved_article_ids, []) : [];
+
+        let isSaved = false;
+        if (savedIds.includes(blogId)) {
+          savedIds = savedIds.filter(id => id !== blogId);
+          isSaved = false;
+        } else {
+          savedIds.push(blogId);
+          isSaved = true;
+        }
+
+        const now = new Date().toISOString();
+        await env.DB.prepare('UPDATE users SET saved_article_ids = ?, updated_at = ? WHERE id = ?').bind(JSON.stringify(savedIds), now, auth.userId).run();
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            isSaved,
+            savedArticleIds: savedIds,
+            message: isSaved ? 'Article saved to reading list.' : 'Article removed from reading list.',
+          }),
+          { headers: corsHeaders }
+        );
       }
 
       if (path === '/api/auth/set-initial-password' && request.method === 'POST') {
@@ -269,43 +572,147 @@ export default {
       }
 
       if (path === '/api/authors') {
-        const authors = await getAllAuthors(env.DB);
-        return new Response(JSON.stringify({ success: true, authors }), { headers: corsHeaders });
-      }
-
-      if (path.startsWith('/api/authors/')) {
-        const idOrSlug = path.replace('/api/authors/', '');
-        if (request.method === 'PUT') {
+        if (request.method === 'POST') {
           const auth = await checkAuth(env, request, ctx);
           if (!auth || !['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(auth.role)) {
             return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
           }
 
           const body = await request.json() as any;
+          const authorId = body.id || `author-${Date.now()}`;
+          const now = new Date().toISOString();
+
           await env.DB.prepare(`
-            UPDATE authors SET 
-              name = ?, title = ?, avatar = ?, cover_image = ?, bio = ?, biography = ?, 
-              qualifications = ?, expertise = ?, social_links = ?, status = ?, is_featured = ?, updated_at = ?
-            WHERE id = ? OR slug = ?
+            INSERT INTO authors (
+              id, slug, name, title, avatar, profile_media_id, cover_image, status, is_featured,
+              image_alt_text, bio, biography, qualifications, expertise, social_links, seo_title,
+              meta_description, email, phone, published_book_count, articles_count, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `).bind(
+            authorId,
+            body.slug || (body.name ? body.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') : authorId),
             body.name,
             body.title || null,
             body.avatar || null,
+            body.profileMediaId || null,
             body.coverImage || null,
+            body.status || 'active',
+            body.isFeatured ? 1 : 0,
+            body.imageAltText || null,
             body.bio || null,
             body.biography || null,
             JSON.stringify(body.qualifications || []),
             JSON.stringify(body.expertise || []),
             JSON.stringify(body.socialLinks || {}),
-            body.status || 'active',
-            body.isFeatured ? 1 : 0,
-            new Date().toISOString(),
-            idOrSlug,
-            idOrSlug
+            body.seoTitle || null,
+            body.metaDescription || null,
+            body.email || null,
+            body.phone || null,
+            body.publishedBookCount !== undefined ? Number(body.publishedBookCount) : 0,
+            body.articlesCount !== undefined ? Number(body.articlesCount) : 0,
+            now,
+            now
           ).run();
 
-          const updatedAuthor = await getAuthorByIdOrSlug(env.DB, idOrSlug);
+          const newAuthor = await getAuthorByIdOrSlug(env.DB, authorId);
+          return new Response(JSON.stringify({ success: true, author: newAuthor }), { headers: corsHeaders });
+        }
+
+        const authors = await getAllAuthors(env.DB);
+        return new Response(JSON.stringify({ success: true, authors }), { headers: corsHeaders });
+      }
+
+      if (path.startsWith('/api/authors/')) {
+        const idOrSlug = path.replace('/api/authors/', '');
+
+        if (request.method === 'PUT') {
+          const auth = await checkAuth(env, request, ctx);
+          if (!auth || !['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(auth.role)) {
+            return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+          }
+
+          const currentAuthor = await getAuthorByIdOrSlug(env.DB, idOrSlug);
+          if (!currentAuthor) {
+            return new Response(JSON.stringify({ success: false, error: 'Author not found' }), { status: 404, headers: corsHeaders });
+          }
+
+          const body = await request.json() as any;
+          await env.DB.prepare(`
+            UPDATE authors SET 
+              slug = ?,
+              name = ?,
+              title = ?,
+              avatar = ?,
+              profile_media_id = ?,
+              cover_image = ?,
+              status = ?,
+              is_featured = ?,
+              image_alt_text = ?,
+              bio = ?,
+              biography = ?,
+              qualifications = ?,
+              expertise = ?,
+              social_links = ?,
+              seo_title = ?,
+              meta_description = ?,
+              email = ?,
+              phone = ?,
+              published_book_count = ?,
+              articles_count = ?,
+              updated_at = ?
+            WHERE id = ? OR slug = ?
+          `).bind(
+            body.slug !== undefined ? body.slug : currentAuthor.slug,
+            body.name !== undefined ? body.name : currentAuthor.name,
+            body.title !== undefined ? body.title : currentAuthor.title,
+            body.avatar !== undefined ? body.avatar : currentAuthor.avatar,
+            body.profileMediaId !== undefined ? body.profileMediaId : currentAuthor.profileMediaId,
+            body.coverImage !== undefined ? body.coverImage : currentAuthor.coverImage,
+            body.status !== undefined ? body.status : currentAuthor.status,
+            body.isFeatured !== undefined ? (body.isFeatured ? 1 : 0) : (currentAuthor.isFeatured ? 1 : 0),
+            body.imageAltText !== undefined ? body.imageAltText : currentAuthor.imageAltText,
+            body.bio !== undefined ? body.bio : currentAuthor.bio,
+            body.biography !== undefined ? body.biography : currentAuthor.biography,
+            body.qualifications !== undefined ? JSON.stringify(body.qualifications || []) : (currentAuthor.qualifications ? JSON.stringify(currentAuthor.qualifications) : '[]'),
+            body.expertise !== undefined ? JSON.stringify(body.expertise || []) : (currentAuthor.expertise ? JSON.stringify(currentAuthor.expertise) : '[]'),
+            body.socialLinks !== undefined ? JSON.stringify(body.socialLinks || {}) : (currentAuthor.socialLinks ? JSON.stringify(currentAuthor.socialLinks) : '{}'),
+            body.seoTitle !== undefined ? body.seoTitle : currentAuthor.seoTitle,
+            body.metaDescription !== undefined ? body.metaDescription : currentAuthor.metaDescription,
+            body.email !== undefined ? body.email : currentAuthor.email,
+            body.phone !== undefined ? body.phone : currentAuthor.phone,
+            body.publishedBookCount !== undefined ? Number(body.publishedBookCount) : (currentAuthor.publishedBookCount || 0),
+            body.articlesCount !== undefined ? Number(body.articlesCount) : (currentAuthor.articlesCount || 0),
+            new Date().toISOString(),
+            currentAuthor.id,
+            currentAuthor.id
+          ).run();
+
+          const updatedAuthor = await getAuthorByIdOrSlug(env.DB, currentAuthor.id);
           return new Response(JSON.stringify({ success: true, author: updatedAuthor }), { headers: corsHeaders });
+        }
+
+        if (request.method === 'DELETE') {
+          const auth = await checkAuth(env, request, ctx);
+          if (!auth || !['SUPER_ADMIN', 'ADMIN', 'EDITOR'].includes(auth.role)) {
+            return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+          }
+
+          const currentAuthor = await getAuthorByIdOrSlug(env.DB, idOrSlug);
+          if (!currentAuthor) {
+            return new Response(JSON.stringify({ success: false, error: 'Author not found' }), { status: 404, headers: corsHeaders });
+          }
+
+          const linkedBooks = await env.DB.prepare('SELECT id, title FROM books WHERE author_id = ? OR author_name = ?').bind(currentAuthor.id, currentAuthor.name).all();
+          if (linkedBooks && linkedBooks.results && linkedBooks.results.length > 0) {
+            return new Response(JSON.stringify({
+              success: false,
+              error: `Cannot delete author "${currentAuthor.name}" because they have ${linkedBooks.results.length} linked book(s). Reassign or remove their books first.`,
+              linkedBooksCount: linkedBooks.results.length
+            }), { status: 400, headers: corsHeaders });
+          }
+
+          await env.DB.prepare('DELETE FROM authors WHERE id = ? OR slug = ?').bind(currentAuthor.id, currentAuthor.id).run();
+          return new Response(JSON.stringify({ success: true, message: 'Author deleted successfully' }), { headers: corsHeaders });
         }
 
         const author = await getAuthorByIdOrSlug(env.DB, idOrSlug);

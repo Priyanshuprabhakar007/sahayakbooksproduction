@@ -1921,23 +1921,36 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const addAuthor = (authorData: Omit<Author, 'id'>) => {
-    const newAuthor: Author = {
+  const addAuthor = async (authorData: Omit<Author, 'id'>) => {
+    const tempId = `author-${Date.now()}`;
+    const payload = {
       ...authorData,
-      id: `author-${Date.now()}`,
+      id: tempId,
     };
-    setAuthors((prev) => [...prev, newAuthor]);
-    addAuditLog('New Author Added', newAuthor.name, 'Added distinguished faculty member');
-    persistToServer('/api/authors', 'POST', newAuthor);
+    try {
+      const data = await persistToServer('/api/authors', 'POST', payload);
+      const savedAuthor = data?.author || payload;
+      setAuthors((prev) => [...prev, savedAuthor]);
+      addAuditLog('New Author Added', savedAuthor.name, 'Added distinguished faculty member');
+      return savedAuthor;
+    } catch (err: any) {
+      console.error('Failed to add author:', err);
+      throw err;
+    }
   };
 
-  const deleteAuthor = (authorId: string) => {
+  const deleteAuthor = async (authorId: string) => {
     const target = authors.find((a) => a.id === authorId);
-    setAuthors((prev) => prev.filter((a) => a.id !== authorId));
-    if (target) {
-      addAuditLog('Author Deleted', target.name, `Removed author ID: ${authorId}`);
+    try {
+      await persistToServer(`/api/authors/${authorId}`, 'DELETE', {});
+      setAuthors((prev) => prev.filter((a) => a.id !== authorId));
+      if (target) {
+        addAuditLog('Author Deleted', target.name, `Removed author ID: ${authorId}`);
+      }
+    } catch (err: any) {
+      console.error('Failed to delete author:', err);
+      throw err;
     }
-    persistToServer(`/api/authors/${authorId}`, 'DELETE', {});
   };
 
   const updateCategory = (updatedCat: Category) => {
